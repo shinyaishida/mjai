@@ -1,6 +1,6 @@
-FROM ubuntu:trusty
+FROM ruby:2.7.3
 RUN apt-get update
-RUN apt-get install -y  libxslt-dev libxml2-dev ruby1.9.1-dev
+RUN apt-get install -y  libxslt-dev libxml2-dev 
 RUN apt-get install -y build-essential
 WORKDIR /mjai
 COPY . .
