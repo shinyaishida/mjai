@@ -5,7 +5,6 @@ mjlog
 tmp
 resource
 .sass-cache
-Gemfile.lock
 *.gem
 nohup.out
 doc/external/*

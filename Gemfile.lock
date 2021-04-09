@@ -1,0 +1,28 @@
+PATH
+  remote: .
+  specs:
+    mjai (0.0.7)
+      bundler (= 2.1.4)
+      json (= 2.5.1)
+      nokogiri (= 1.11.3)
+      sass (= 3.1.0)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    json (2.5.1)
+    mini_portile2 (2.5.0)
+    nokogiri (1.11.3)
+      mini_portile2 (~> 2.5.0)
+      racc (~> 1.4)
+    racc (1.5.2)
+    sass (3.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  mjai!
+
+BUNDLED WITH
+   2.1.4
