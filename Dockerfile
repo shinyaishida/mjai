@@ -6,3 +6,4 @@ WORKDIR /mjai
 COPY . .
 RUN gem build mjai.gemspec
 RUN gem install ./mjai-0.0.7.gem
+RUN bundle install

@@ -8,3 +8,5 @@ resource
 *.gem
 nohup.out
 doc/external/*
+log
+vendor
