@@ -480,7 +480,7 @@ goBack = function() {
   return renderCurrentAction();
 };
 
-$(function() {
+loadMjson = function() {
   var action, bakazeStr, honba, i, j, kyokuNum, label, playerInfoView, playerView, _i, _j, _k, _l, _len, _ref;
   $(window).bind("mousewheel", function(e) {
     e.preventDefault();
@@ -529,4 +529,4 @@ $(function() {
   }
   console.log("loaded");
   return renderCurrentAction();
-});
+};
