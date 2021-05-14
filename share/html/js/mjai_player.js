@@ -32,6 +32,9 @@ currentActionId = -1;
 currentViewpoint = 0;
 playerInfos = [{}, {}, {}, {}];
 gameEnded = false;
+// TODO: parse start_game action message to extract the exact player ID.
+playerId = 0;
+let wait_click;
 
 parsePai = function(pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -471,21 +474,6 @@ goNext = function() {
   return renderCurrentAction();
 };
 
-next = function() {
-  if (gameEnded) {
-    return;
-  }
-  ++currentActionId;
-  $("#action-id-label").val(currentActionId);
-  const action = allActions[currentActionId];
-  loadAction(action);
-  if (currentKyokuId >= 0) {
-    return renderAction(action);
-  } else {
-    return;
-  }
-}
-
 goBack = function() {
   if (currentActionId === 0) {
     return;
@@ -537,7 +525,7 @@ loadMjson = function() {
   return renderCurrentAction();
 };
 
-initGame = function() {
+initGame = async function() {
   $("#board").click(next);
 
   Dytem.init();
@@ -551,4 +539,30 @@ initGame = function() {
     playerInfoView.index.text(i);
     playerInfoView.name.text(playerInfos[i].name);
   }
+
+  while (!gameEnded) {
+    ++currentActionId;
+    $("#action-id-label").val(currentActionId);
+    const action = allActions[currentActionId];
+    if (action.actor == playerId) {
+      if (action.type != "tsumo") {
+        wait_click = true;
+        while (wait_click) {
+          await sleep(1000);
+          console.log("wait")
+        }
+      }
+    }
+    loadAction(action);
+    if (currentKyokuId >= 0) {
+      renderAction(action);
+    }
+    await sleep(100);
+  }
 };
+
+const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+
+next = function() {
+  wait_click = false;
+}
