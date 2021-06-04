@@ -1,84 +1,92 @@
 <!DOCTYPE html>
-<html><head>
-  <meta charset="utf-8"> 
-  <title>Mahjong Archive Player</title>
-  <link rel="stylesheet" type="text/css" href="./css/style.css">
-  <script src="./js/jquery-1.7.2.min.js"></script>
-  <script src="./js/dytem.js"></script>
-  <script src="./js/mjai_player.js"></script>
+<html>
 
-</head>
-<body>
-  <div id="board" class="board">
-    <div id="players" class="repeated player">
-      <div class="ho">
-        <div id="players.hoRows" class="repeated pai-row">
-          <img id="players.hoRows.pais" class="repeated">
+  <head>
+    <meta charset="utf-8">
+    <title>Mahjong Archive Player</title>
+    <link rel="stylesheet" type="text/css" href="./css/style.css">
+    <script src="./js/jquery-1.7.2.min.js"></script>
+    <script src="./js/dytem.js"></script>
+    <script src="./js/mjai_player.js"></script>
+
+  </head>
+
+  <body>
+    <div id="board" class="board">
+      <div id="players" class="repeated player">
+        <div class="ho">
+          <div id="players.hoRows" class="repeated pai-row">
+            <img id="players.hoRows.pais" class="repeated">
+          </div>
         </div>
+        <div class="tehai-container pai-row">
+          <img id="players.tehais" class="repeated">
+          <img id="players.tsumoPai" class="tsumo-pai">
+        </div>
+        <div class="furo-container pai-row">
+          <span id="players.furos" class="repeated">
+            <img id="players.furos.pais" class="repeated">
+          </span>
+        </div>
+        <div class="player-footer"></div>
       </div>
-      <div class="tehai-container pai-row">
-        <img id="players.tehais" class="repeated">
-        <img id="players.tsumoPai" class="tsumo-pai">
+      <div class="wanpais-container">
+        <img id="wanpais" class="repeated">
       </div>
-      <div class="furo-container pai-row">
-        <span id="players.furos" class="repeated">
-          <img id="players.furos.pais" class="repeated">
-        </span>
+    </div>
+
+    <div class="controller-container">
+      <div><input type=file id="mjsonfile" /></div>
+      <div>
+        注: Chrome以外のブラウザでは動かないかも。
       </div>
-      <div class="player-footer"></div>
+      <div>
+        <select id="kyokuSelector"></select>
+      </div>
+      <div>
+        <button id="prev-button">Prev</button>
+        <button id="next-button">Next</button>
+        <input id="action-id-label" type="text" size="3" value="0">
+        <button id="go-button">Go</button>
+      </div>
+      <table border="0">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Score</th>
+          <th><button id="viewpoint-button">Viewpoint</button></th>
+        </tr>
+        <tr id="playerInfos" class="repeated">
+          <td id="playerInfos.index"></td>
+          <td id="playerInfos.name"></td>
+          <td id="playerInfos.score"></td>
+          <td id="playerInfos.viewpoint"></td>
+        </tr>
+      </table>
+      <div id="action-label"></div>
+      <div id="log-label" class="log-label"></div>
     </div>
-    <div class="wanpais-container">
-      <img id="wanpais" class="repeated">
-    </div>
-  </div>
-  
-  <div class="controller-container">
-    <div><input type=file id="mjsonfile"/></div>
-    <div>
-      注: Chrome以外のブラウザでは動かないかも。
-    </div>
-    <div>
-      <select id="kyokuSelector"></select>
-    </div>
-    <div>
-      <button id="prev-button">Prev</button>
-      <button id="next-button">Next</button>
-      <input id="action-id-label" type="text" size="3" value="0">
-      <button id="go-button">Go</button>
-    </div>
-    <table border="0">
-      <tr>
-        <th>#</th>
-        <th>Name</th>
-        <th>Score</th>
-        <th><button id="viewpoint-button">Viewpoint</button></th>
-      </tr>
-      <tr id="playerInfos" class="repeated">
-        <td id="playerInfos.index"></td>
-        <td id="playerInfos.name"></td>
-        <td id="playerInfos.score"></td>
-        <td id="playerInfos.viewpoint"></td>
-      </tr>
-    </table>
-    <div id="action-label"></div>
-    <div id="log-label" class="log-label"></div>
-  </div>
-  <script>
-    let input_file = document.getElementById("mjsonfile")
-    let allActions = []
-    input_file.onchange = ()=>{
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        allActions = []
-        e.target.result.split("\n").forEach(element => {
-          allActions.push(JSON.parse(element))
+    <script>
+      let input_file = document.getElementById("mjsonfile")
+      let allActions = []
+      input_file.onchange = () => {
+        chrome.sockets.tcp.create({}, function (createInfo) {
+          chrome.sockets.tcp.connect(createInfo.socketId, '127.0.0.1', 11600, function (result) {
+            console.log(result);
+          });
         });
-        initGame();
       };
-      reader.readAsText(input_file.files[0]);
-    }
-    resourceDir = "2021-05-03-072516.html.files";
-</script>
-</body>
+      // var reader = new FileReader();
+      // reader.onload = function (e) {
+      //   allActions = []
+      //   e.target.result.split("\n").forEach(element => {
+      //     allActions.push(JSON.parse(element))
+      //   });
+      //   initGame();
+      // };
+      //      reader.readAsText(input_file.files[0]);
+//      resourceDir = "2021-05-03-072516.html.files";
+    </script>
+  </body>
 
 </html>
