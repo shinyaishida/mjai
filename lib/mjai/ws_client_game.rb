@@ -16,15 +16,15 @@ module Mjai
       @params = params
     end
 
-    def play      
+    def play
       EM.run do
         play_game
       end
     end
 
     def play_game
-        uri = URI.parse(@params[:url])
-        ws = Faye::WebSocket::Client.new(format('ws://%s:%d', uri.host, uri.port))
+      uri = URI.parse(@params[:url])
+      ws = Faye::WebSocket::Client.new(format('ws://%s:%d', uri.host, uri.port))
 
       ws.on :open do |_event|
         p [:open]
@@ -41,8 +41,9 @@ module Mjai
       end
 
       ws.on :message do |event|
-        puts(event.data)
-        msg = JSON.parse(event.data, symbolize_names: true)
+        action_json = event.data
+        puts(action_json)
+        msg = JSON.parse(action_json, symbolize_names: true)
         case msg[:type]
         when 'hello'
           response_json = JSON.dump({
@@ -51,19 +52,21 @@ module Mjai
                                       'room' => uri.path.slice(%r{^/(.*)$}, 1)
                                     })
         when 'error'
-          puts('ERROR: %s' % event.data)
+          puts('ERROR: %s' % action_json)
           break
         else
-          if action_obj['type'] == 'start_game'
-            @my_id = action_obj['id']
+          if msg[:type] == 'start_game'
+            @my_id = msg[:id]
             self.players = Array.new(4) do |i|
               i == @my_id ? @params[:player] : PuppetPlayer.new
             end
           end
           action = Action.from_json(action_json, self)
+          puts('ws action test >>>>> %s' % action)
           responses = do_action(action)
           break if action.type == :end_game
 
+          puts(format('responses>>>>  %s; %s', responses, @my_id))
           response = responses && responses[@my_id]
           response_json = response ? response.to_json : JSON.dump({ 'type' => 'none' })
         end

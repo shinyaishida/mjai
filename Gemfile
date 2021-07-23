@@ -1,8 +1,8 @@
-source "http://rubygems.org"
-gemspec :name => "mjai"
+source 'http://rubygems.org'
+gemspec name: 'mjai'
 
-gem 'puma'
 gem 'faye-websocket'
+gem 'puma'
 
 group :development do
   gem 'rubocop'

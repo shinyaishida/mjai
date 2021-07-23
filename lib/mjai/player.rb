@@ -22,6 +22,7 @@ module Mjai
         attr_accessor(:game)
         attr_accessor(:score)
         
+        
         def anpais
           return @sutehais + @extra_anpais
         end

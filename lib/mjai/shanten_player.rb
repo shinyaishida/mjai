@@ -13,9 +13,8 @@ module Mjai
         end
         
         def respond_to_action(action)
-          
+          puts('is action actor me?  %s' % (action.actor == self))
           if action.actor == self
-            
             case action.type
               
               when :tsumo, :chi, :pon, :reach
