@@ -55,7 +55,6 @@ App = lambda do |env|
     ws.on :message do |event|
       puts("server <- player ?\t#{event.data}")
       msg = JSON.parse(event.data, symbolize_names: true)
-      puts('on message >>> %s' % msg)
       begin
         if msg[:type] == 'join'
           raise(LocalError, 'expected action type join but %s' % msg[:type]) if msg[:type] != 'join'

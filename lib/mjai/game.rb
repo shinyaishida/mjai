@@ -42,9 +42,7 @@ module Mjai
 
     # Executes the action and returns responses for it from players.
     def do_action(action)
-      puts('action test1 >>>> %s' % action)
       action = Action.new(action) if action.is_a?(Hash)
-      puts('action test2 >>>> %s' % action)
       update_state(action)
 
       @on_action.call(action) if @on_action
