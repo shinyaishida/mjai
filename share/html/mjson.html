@@ -70,21 +70,16 @@
       let input_file = document.getElementById("mjsonfile")
       let allActions = []
       input_file.onchange = () => {
-        chrome.sockets.tcp.create({}, function (createInfo) {
-          chrome.sockets.tcp.connect(createInfo.socketId, '127.0.0.1', 11600, function (result) {
-            console.log(result);
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          allActions = []
+          e.target.result.split("\n").forEach(element => {
+            allActions.push(JSON.parse(element))
           });
-        });
-      };
-      // var reader = new FileReader();
-      // reader.onload = function (e) {
-      //   allActions = []
-      //   e.target.result.split("\n").forEach(element => {
-      //     allActions.push(JSON.parse(element))
-      //   });
-      //   initGame();
-      // };
-      //      reader.readAsText(input_file.files[0]);
+          initGame();
+        };
+        reader.readAsText(input_file.files[0]);
+      }
 //      resourceDir = "2021-05-03-072516.html.files";
     </script>
   </body>
