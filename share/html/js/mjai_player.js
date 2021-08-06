@@ -3,9 +3,9 @@ var BAKAZE_TO_STR, TSUPAIS, TSUPAI_TO_IMAGE_NAME, cloneBoard, comparePais, curre
 
 window.console || (window.console = {});
 
-(_base = window.console).log || (_base.log = function() {});
+(_base = window.console).log || (_base.log = function () { });
 
-(_base1 = window.console).error || (_base1.error = function() {});
+(_base1 = window.console).error || (_base1.error = function () { });
 
 TSUPAIS = [null, "E", "S", "W", "N", "P", "F", "C"];
 
@@ -36,7 +36,7 @@ gameEnded = false;
 playerId = 0;
 let wait_click;
 
-parsePai = function(pai) {
+parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
     return {
       type: RegExp.$2,
@@ -52,7 +52,7 @@ parsePai = function(pai) {
   }
 };
 
-comparePais = function(lhs, rhs) {
+comparePais = function (lhs, rhs) {
   var lhsRep, parsedLhs, parsedRhs, rhsRep;
   parsedLhs = parsePai(lhs);
   lhsRep = parsedLhs.type + parsedLhs.number + (parsedLhs.red ? "1" : "0");
@@ -67,11 +67,11 @@ comparePais = function(lhs, rhs) {
   }
 };
 
-sortPais = function(pais) {
+sortPais = function (pais) {
   return pais.sort(comparePais);
 };
 
-paiToImageUrl = function(pai, pose) {
+paiToImageUrl = function (pai, pose) {
   var ext, name, parsedPai, redSuffix;
   if (pai) {
     if (pai === "?") {
@@ -96,7 +96,7 @@ paiToImageUrl = function(pai, pose) {
   }
 };
 
-cloneBoard = function(board) {
+cloneBoard = function (board) {
   var bk, bv, newBoard, newPlayer, pk, player, pv, _i, _len;
   newBoard = {};
   for (bk in board) {
@@ -119,7 +119,7 @@ cloneBoard = function(board) {
   return newBoard;
 };
 
-initPlayers = function(board) {
+initPlayers = function (board) {
   var player, _i, _len, _ref, _results;
   _ref = board.players;
   _results = [];
@@ -134,7 +134,7 @@ initPlayers = function(board) {
   return _results;
 };
 
-removeRed = function(pai) {
+removeRed = function (pai) {
   if (!pai) {
     return null;
   }
@@ -145,7 +145,7 @@ removeRed = function(pai) {
   }
 };
 
-loadAction = function(action) {
+loadAction = function (action) {
   console.log(action)
   var actorPlayer, board, furos, i, kyoku, pai, prevBoard, targetPlayer, _i, _j, _k, _l, _len, _len1, _m, _n, _o, _ref, _ref1, _ref2;
   if (kyokus.length > 0) {
@@ -289,7 +289,7 @@ loadAction = function(action) {
   }
 };
 
-deleteTehai = function(player, pai) {
+deleteTehai = function (player, pai) {
   var idx;
   player.tehais = player.tehais.concat([]);
   idx = player.tehais.lastIndexOf(pai);
@@ -302,10 +302,10 @@ deleteTehai = function(player, pai) {
   return player.tehais[idx] = null;
 };
 
-ripai = function(player) {
+ripai = function (player) {
   var pai;
   if (player.tehais) {
-    player.tehais = (function() {
+    player.tehais = (function () {
       var _i, _len, _ref, _results;
       _ref = player.tehais;
       _results = [];
@@ -321,7 +321,7 @@ ripai = function(player) {
   }
 };
 
-dumpBoard = function(board) {
+dumpBoard = function (board) {
   var consumedStr, furo, hoStr, i, player, tehaisStr, _i, _j, _len, _ref, _results;
   _results = [];
   for (i = _i = 0; _i < 4; i = ++_i) {
@@ -346,7 +346,7 @@ dumpBoard = function(board) {
   return _results;
 };
 
-renderPai = function(pai, view, pose) {
+renderPai = function (pai, view, pose) {
   if (pose === void 0) {
     pose = 1;
   }
@@ -363,7 +363,7 @@ renderPai = function(pai, view, pose) {
   }
 };
 
-renderPais = function(pais, view, poses) {
+renderPais = function (pais, view, poses) {
   var i, _i, _ref, _results;
   pais || (pais = []);
   poses || (poses = []);
@@ -375,7 +375,7 @@ renderPais = function(pais, view, poses) {
   return _results;
 };
 
-renderHo = function(player, offset, pais, view) {
+renderHo = function (player, offset, pais, view) {
   var i, reachIndex, _i, _ref, _results;
   if (player.reachHoIndex === null) {
     reachIndex = null;
@@ -390,7 +390,7 @@ renderHo = function(player, offset, pais, view) {
   return _results;
 };
 
-renderAction = function(action) {
+renderAction = function (action) {
   console.log(action);
   var dir, displayAction, furo, furoView, ho, i, infoView, j, k, kyoku, laidPos, pais, player, poses, v, view, wanpais, _i, _j, _ref, _ref1, _ref2, _ref3;
   displayAction = {};
@@ -457,15 +457,15 @@ renderAction = function(action) {
   return renderPais(wanpais, Dytem.wanpais);
 };
 
-getCurrentKyoku = function() {
+getCurrentKyoku = function () {
   return kyokus[currentKyokuId];
 };
 
-renderCurrentAction = function() {
+renderCurrentAction = function () {
   return renderAction(getCurrentKyoku().actions[currentActionId]);
 };
 
-goNext = function() {
+goNext = function () {
   if (currentActionId === getCurrentKyoku().actions.length - 1) {
     return;
   }
@@ -474,7 +474,7 @@ goNext = function() {
   return renderCurrentAction();
 };
 
-goBack = function() {
+goBack = function () {
   if (currentActionId === 0) {
     return;
   }
@@ -483,19 +483,19 @@ goBack = function() {
   return renderCurrentAction();
 };
 
-loadMjson = function() {
+loadMjson = function () {
   var action, bakazeStr, honba, i, j, kyokuNum, label, playerInfoView, playerView, _i, _j, _k, _l, _len, _ref;
   $("#board").click(goNext);
-  $("#go-button").click(function() {
+  $("#go-button").click(function () {
     currentActionId = parseInt($("#action-id-label").val());
     return renderCurrentAction();
   });
-  $("#kyokuSelector").change(function() {
+  $("#kyokuSelector").change(function () {
     currentKyokuId = parseInt($("#kyokuSelector").val());
     currentActionId = 0;
     return renderCurrentAction();
   });
-  $("#viewpoint-button").click(function() {
+  $("#viewpoint-button").click(function () {
     currentViewpoint = (currentViewpoint + 1) % 4;
     return renderCurrentAction();
   });
@@ -525,10 +525,10 @@ loadMjson = function() {
   return renderCurrentAction();
 };
 
-initGame = async function() {
-  $("#board").click(next);
-
+initPlayerInfo = async function () {
   Dytem.init();
+  // i: player id   0 <= i <= 3
+  // j: ho row id   0 <= j <= 2
   for (i = _j = 0; _j < 4; i = ++_j) {
     playerView = Dytem.players.append();
     playerView.addClass("player-" + i);
@@ -539,6 +539,12 @@ initGame = async function() {
     playerInfoView.index.text(i);
     playerInfoView.name.text(playerInfos[i].name);
   }
+};
+
+initGame = async function () {
+  $("#board").click(next);
+
+  initPlayerInfo();
 
   while (!gameEnded) {
     ++currentActionId;
@@ -561,8 +567,68 @@ initGame = async function() {
   }
 };
 
+startGame = async function () {
+  let my_id;
+  let names;
+  let kyoku = {};
+  console.log('Connecting');
+  let server_name = '127.0.0.1';
+  let server_port = 9292;
+  let socket = new WebSocket(`ws://${server_name}:${server_port}`);
+  socket.onopen = function (event) {
+    console.log(`Connected to server ${server_name}:${server_port}`);
+    socket.send(JSON.stringify({
+      type: 'join',
+      name: 'kkri-client',
+      room: 'default'
+    }));
+  }
+  socket.onmessage = function (event) {
+    let msg = JSON.parse(event.data);
+    console.log(`Received '${msg}'`);
+    if (msg.type === "hello") {
+      socket.send(JSON.stringify({
+        type: 'join',
+        name: 'kkri-client',
+        room: 'default'
+      }));
+    } else if (msg.type === 'error') {
+      socket.close();
+    } else {
+      if (msg.type === 'start_game') {
+        my_id = msg.id;
+        names = msg.names;
+        socket.send(JSON.stringify({ type: "none" }));
+        initPlayerInfo();
+      } else {
+        loadAction(msg);
+        if (currentKyokuId >= 0) {
+          renderAction(msg);
+        }
+        if (msg.type === 'start_kyoku') {
+          socket.send(JSON.stringify({ type: "none" }));
+        } else if (msg.type === 'tsumo') {
+          if (msg.actor === my_id) {
+            socket.send(JSON.stringify({ type: "dahai", actor: my_id, pai: msg.pai, tsumogiri: true }));
+          } else {
+            socket.send(JSON.stringify({ type: "none" }));
+          }
+        } else if (msg.type === 'dahai') {
+          socket.send(JSON.stringify({ type: "none" }));
+        }
+      }
+    }
+  };
+  socket.onclose = function (event) {
+    console.log(event.data);
+  }
+  socket.onerror = function (event) {
+    alert(event.data);
+  }
+};
+
 const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 
-next = function() {
+next = function () {
   wait_click = false;
 }

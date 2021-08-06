@@ -23,8 +23,7 @@ module Mjai
       puts(format("server -> player %d\t%s", id, action.to_json))
       @websocket.send(action.to_json)
       @line = nil
-      # Timeout.timeout(TIMEOUT_SEC) { ; }
-      sleep 0.1
+      sleep 0.1 while @line.nil?
       if @line
         puts(format("server <- player %d\t%s", id, @line))
         Action.from_json(@line.chomp, game)

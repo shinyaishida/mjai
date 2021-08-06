@@ -36,6 +36,7 @@
     </div>
 
     <div class="controller-container">
+      <div><button id="connect-button" onclick="startGame()">Connect</button></div>
       <div><input type=file id="mjsonfile" /></div>
       <div>
         注: Chrome以外のブラウザでは動かないかも。
@@ -79,8 +80,7 @@
           initGame();
         };
         reader.readAsText(input_file.files[0]);
-      }
-//      resourceDir = "2021-05-03-072516.html.files";
+      };
     </script>
   </body>
 
