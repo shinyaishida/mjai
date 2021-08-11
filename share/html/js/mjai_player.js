@@ -35,6 +35,9 @@ gameEnded = false;
 // TODO: parse start_game action message to extract the exact player ID.
 playerId = 0;
 let wait_click;
+let my_id;
+let pai_index;
+let wait_dahai = false;
 
 parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -346,11 +349,15 @@ dumpBoard = function (board) {
   return _results;
 };
 
-renderPai = function (pai, view, pose) {
+renderPai = function (pai, view, index, pose = void 0, mypai = false) {
   if (pose === void 0) {
     pose = 1;
   }
   view.attr("src", paiToImageUrl(pai, pose));
+  view.attr("index", index);
+  if (mypai) {
+    view.addClass("mypai");
+  }
   switch (pose) {
     case 1:
       view.addClass("pai");
@@ -363,14 +370,14 @@ renderPai = function (pai, view, pose) {
   }
 };
 
-renderPais = function (pais, view, poses) {
+renderPais = function (pais, view, poses, mypai = false) {
   var i, _i, _ref, _results;
   pais || (pais = []);
   poses || (poses = []);
   view.resize(pais.length);
   _results = [];
   for (i = _i = 0, _ref = pais.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-    _results.push(renderPai(pais[i], view.at(i), poses[i]));
+    _results.push(renderPai(pais[i], view.at(i), i, poses[i], mypai));
   }
   return _results;
 };
@@ -385,7 +392,7 @@ renderHo = function (player, offset, pais, view) {
   view.resize(pais.length);
   _results = [];
   for (i = _i = 0, _ref = pais.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-    _results.push(renderPai(pais[i], view.at(i), i === reachIndex ? 3 : 1));
+    _results.push(renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1));
   }
   return _results;
 };
@@ -413,9 +420,11 @@ renderAction = function (action) {
       renderPais([], view.tehais);
       view.tsumoPai.hide();
     } else if (player.tehais.length % 3 === 2) {
-      renderPais(player.tehais.slice(0, player.tehais.length - 1), view.tehais);
+      my_pais = i === my_id;
+      tehai_maxid = player.tehais.length - 1;
+      renderPais(player.tehais.slice(0, tehai_maxid), view.tehais, [], my_pais);
       view.tsumoPai.show();
-      renderPai(player.tehais[player.tehais.length - 1], view.tsumoPai);
+      renderPai(player.tehais[tehai_maxid], view.tsumoPai, tehai_maxid, 1, my_pais);
     } else {
       renderPais(player.tehais, view.tehais);
       view.tsumoPai.hide();
@@ -568,7 +577,6 @@ initGame = async function () {
 };
 
 startGame = async function () {
-  let my_id;
   let names;
   let kyoku = {};
   console.log('Connecting');
@@ -583,7 +591,7 @@ startGame = async function () {
       room: 'default'
     }));
   }
-  socket.onmessage = function (event) {
+  socket.onmessage = async function (event) {
     let msg = JSON.parse(event.data);
     console.log(`Received '${msg}'`);
     if (msg.type === "hello") {
@@ -609,7 +617,21 @@ startGame = async function () {
           socket.send(JSON.stringify({ type: "none" }));
         } else if (msg.type === 'tsumo') {
           if (msg.actor === my_id) {
-            socket.send(JSON.stringify({ type: "dahai", actor: my_id, pai: msg.pai, tsumogiri: true }));
+            pai_index = -1;
+            wait_dahai = true;
+            while (pai_index < 0) {
+              await sleep(200);
+            }
+            wait_dahai = false;
+            tehais = msg.tehais;
+            tehai_length = tehais.length;
+            if (pai_index < tehai_length) {
+              let dahai = tehais[pai_index];
+              console.log(`dahai ${pai}`);
+            } else {
+              console.error(`pai index ${pai_index} is out of ${tehais}`);
+            }
+            socket.send(JSON.stringify({ type: "dahai", actor: my_id, pai: dahai, tsumogiri: pai_index === (tehai_length - 1) }));
           } else {
             socket.send(JSON.stringify({ type: "none" }));
           }
@@ -632,3 +654,11 @@ const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 next = function () {
   wait_click = false;
 }
+
+$("img.mypai").on('click', function () {
+  console.log("clicked!", $(this));
+  if (wait_dahai) {
+    pai_index = $(this).index;
+    wait_dahai = false;
+  }
+});
