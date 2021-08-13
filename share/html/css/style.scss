@@ -8,7 +8,7 @@ $laid-pai-height: 32px;
 
 $ho-tehai-margin: $pai-height;
 $board-width: $pai-width * 25;
-$player-height: $pai-height * 4 + $ho-tehai-margin;
+$player-height: $pai-height * 4+$ho-tehai-margin;
 
 .repeated {
   display: none;
@@ -99,13 +99,12 @@ $player-height: $pai-height * 4 + $ho-tehai-margin;
   height: $pai-height;
 }
 
-.tehai-container {
-}
+.tehai-container {}
 
 .controller-container {
   position: absolute;
   left: $board-width;
-  top: 0px;
+  top: 550px;
   padding: 8px;
 }
 
