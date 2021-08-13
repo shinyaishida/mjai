@@ -118,17 +118,17 @@ module Mjai
         else
           raise('should not happen')
         end
-        # game = TCPClientGame.new({
         game = WebSocketClientGame.new({
                                          player: player,
                                          url: url,
                                          name: opts['name'] || player_type
                                        })
-        game.play
-
+        Kernel.loop do
+          game.play
+          sleep 5.0
+        end
       else
         raise('should not happen')
-
       end
     end
   end
