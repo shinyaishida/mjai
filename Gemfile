@@ -9,3 +9,8 @@ gem 'puma'
 group :development do
   gem 'rubocop'
 end
+
+group :test do
+  gem 'rake'
+  gem 'test-unit'
+end

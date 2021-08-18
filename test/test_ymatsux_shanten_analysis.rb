@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/../lib")
-
+require 'test_helper'
 require 'pp'
-require 'test/unit'
-
 require 'mjai/ymatsux_shanten_analysis'
 require 'mjai/pai'
 

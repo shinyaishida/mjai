@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-$LOAD_PATH.unshift("#{File.dirname(__FILE__)}/../lib")
-
-require 'test/unit'
-
+require 'test_helper'
 require 'mjai/tenpai_analysis'
 
 class TC_TenpaiAnalysis < Test::Unit::TestCase
