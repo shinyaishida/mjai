@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'socket'
 require 'rubygems'
 require 'json'
@@ -25,7 +27,7 @@ module Mjai
       @pids = []
       begin
         start_default_players
-        while true
+        loop do
           Thread.new(@server.accept) do |socket|
             error = nil
             begin
@@ -92,9 +94,7 @@ module Mjai
       end
 
       begin
-        @players.each do |player|
-          player.close
-        end
+        @players.each(&:close)
       rescue StandardError => e
         print_backtrace(e)
       end
@@ -135,7 +135,7 @@ module Mjai
 
     def start_default_players
       @params[:player_commands].each do |command|
-        command += ' ' + server_url
+        command += " #{server_url}"
         puts(command)
         @pids.push(fork { exec(command) })
       end
@@ -149,7 +149,7 @@ module Mjai
 
     def print_backtrace(ex, io = $stderr)
       io.printf("%s: %s (%p)\n", ex.backtrace[0], ex.message, ex.class)
-      ex.backtrace[1..-1].each do |s|
+      ex.backtrace[1..].each do |s|
         io.printf("        %s\n", s)
       end
     end

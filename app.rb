@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'faye/websocket'
 require './lib/mjai/active_game'
@@ -36,7 +38,7 @@ pids = []
 
 # TCPGameServer#start_default_players()
 params[:player_commands].each do |command|
-  command += ' ' + server_url
+  command += " #{server_url}"
   puts(command)
   pids.push(fork { exec(command) })
 end
@@ -70,7 +72,7 @@ App = lambda do |env|
             players.push(player)
             delta = num_tcp_players - players.size
             puts('Waiting for %s more players...' % delta)
-            if delta == 0
+            if delta.zero?
               Thread.new do
                 # TCPActiveGameServer#play_game()
                 success = start_game(players)

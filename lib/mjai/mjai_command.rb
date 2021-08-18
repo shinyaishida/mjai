@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'optparse'
 
 require 'mjai/tcp_active_game_server'
@@ -71,24 +73,24 @@ module Mjai
 
         else
           warn(
-            "Basic Usage:\n" +
-              "  #{$PROGRAM_NAME} server --port=PORT\n" +
-              "  #{$PROGRAM_NAME} server --port=PORT " +
-                  "[PLAYER1_COMMAND] [PLAYER2_COMMAND] [...]\n" +
-              "  #{$PROGRAM_NAME} stats 1.mjson [2.mjson] [...]\n" +
-              "  #{$PROGRAM_NAME} convert hoge.mjson hoge.html\n" +
-              "  #{$PROGRAM_NAME} convert hoge.mjlog hoge.mjson\n\n" +
-              "Complete usage:\n" +
-              "  #{$PROGRAM_NAME} server \\\n" +
-              "    --host=IP_ADDRESS \\\n" +
-              "    --port=PORT \\\n" +
-              "    --room=ROOM_NAME \\\n" +
-              "    --game_type={one_kyoku|tonpu|tonnan} \\\n" +
-              "    --games={NUM_GAMES|infinite} \\\n" +
-              "    --log_dir=LOG_DIR_PATH \\\n" +
-              "    [PLAYER1_COMMAND] [PLAYER2_COMMAND] [...]\n\n" +
-              "See here for details:\n" +
-              'http://gimite.net/pukiwiki/index.php?' +
+            "Basic Usage:\n" \
+              "  #{$PROGRAM_NAME} server --port=PORT\n" \
+              "  #{$PROGRAM_NAME} server --port=PORT " \
+                  "[PLAYER1_COMMAND] [PLAYER2_COMMAND] [...]\n" \
+              "  #{$PROGRAM_NAME} stats 1.mjson [2.mjson] [...]\n" \
+              "  #{$PROGRAM_NAME} convert hoge.mjson hoge.html\n" \
+              "  #{$PROGRAM_NAME} convert hoge.mjlog hoge.mjson\n\n" \
+              "Complete usage:\n" \
+              "  #{$PROGRAM_NAME} server \\\n" \
+              "    --host=IP_ADDRESS \\\n" \
+              "    --port=PORT \\\n" \
+              "    --room=ROOM_NAME \\\n" \
+              "    --game_type={one_kyoku|tonpu|tonnan} \\\n" \
+              "    --games={NUM_GAMES|infinite} \\\n" \
+              "    --log_dir=LOG_DIR_PATH \\\n" \
+              "    [PLAYER1_COMMAND] [PLAYER2_COMMAND] [...]\n\n" \
+              "See here for details:\n" \
+              'http://gimite.net/pukiwiki/index.php?' \
               "Mjai%20%CB%E3%BF%FDAI%C2%D0%C0%EF%A5%B5%A1%BC%A5%D0\n"
           )
           exit(1)
@@ -105,7 +107,7 @@ module Mjai
 
         unless url
           warn(
-            "Usage:\n" +
+            "Usage:\n" \
               "  #{$PROGRAM_NAME} mjsonp://localhost:11600/default\n"
           )
           exit(1)

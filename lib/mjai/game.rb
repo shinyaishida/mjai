@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'mjai/action'
 require 'mjai/pai'
 require 'mjai/furo'
@@ -21,7 +23,7 @@ module Mjai
       @first_turn = false
     end
 
-    attr_reader :players, :all_pais, :bakaze, :oya, :honba, :dora_markers, :current_action, :previous_action, :all_pais, :num_pipais  # ドラ表示牌
+    attr_reader :players, :all_pais, :bakaze, :oya, :honba, :dora_markers, :current_action, :previous_action, :all_pais, :num_pipais # ドラ表示牌
     attr_accessor(:last) # kari
 
     def players=(players)
@@ -45,15 +47,15 @@ module Mjai
       action = Action.new(action) if action.is_a?(Hash)
       update_state(action)
 
-      @on_action.call(action) if @on_action
+      @on_action&.call(action)
 
       responses = (0...4).map do |i|
         @players[i].respond_to_action(action_in_view(action, i, true))
       end
 
-      action_with_logs = action.merge({ logs: responses.map { |r| r && r.log } })
+      action_with_logs = action.merge({ logs: responses.map { |r| r&.log } })
       responses = responses.map { |r| !r || r.type == :none ? nil : r.merge({ log: nil }) }
-      @on_responses.call(action_with_logs, responses) if @on_responses
+      @on_responses&.call(action_with_logs, responses)
 
       @previous_action = action
       validate_responses(responses, action)
@@ -69,7 +71,7 @@ module Mjai
       when :start_game
         # TODO: change this by red config
         pais = (0...4).map do |i|
-          %w[m p s].map { |t| (1..9).map { |n| Pai.new(t, n, n == 5 && i == 0) } } +
+          %w[m p s].map { |t| (1..9).map { |n| Pai.new(t, n, n == 5 && i.zero?) } } +
             (1..7).map { |n| Pai.new('t', n) }
         end
         @all_pais = pais.flatten.sort
@@ -226,7 +228,7 @@ module Mjai
         end
         validate(
           response.actor.possible_dahais.include?(response.pai),
-          'Cannot dahai this pai. The pai is not in the tehais, ' +
+          'Cannot dahai this pai. The pai is not in the tehais, ' \
             "it's kuikae, or it causes noten reach."
         )
 
@@ -252,9 +254,10 @@ module Mjai
         end
 
       when :chi, :pon, :daiminkan, :ankan, :kakan
-        if response.type == :ankan
+        case response.type
+        when :ankan
           validate_fields_exist(response, [:consumed])
-        elsif response.type == :kakan
+        when :kakan
           validate_fields_exist(response, %i[pai consumed])
         else
           validate_fields_exist(response, %i[target pai consumed])
@@ -307,12 +310,12 @@ module Mjai
 
     def validate_fields_exist(response, field_names)
       field_names.each do |name|
-        raise(ValidationError, '%s missing.' % name) unless response.fields.has_key?(name)
+        raise(ValidationError, '%s missing.' % name) unless response.fields.key?(name)
       end
     end
 
     def doras
-      @dora_markers ? @dora_markers.map { |pai| pai.succ } : nil
+      @dora_markers ? @dora_markers.map(&:succ) : nil
     end
 
     def get_hora(action, params = {})
@@ -324,7 +327,7 @@ module Mjai
                else
                  action.actor.tehais
                end
-      uradoras = (params[:uradora_markers] || []).map { |pai| pai.succ }
+      uradoras = (params[:uradora_markers] || []).map(&:succ)
       Hora.new({
                  tehais: tehais,
                  furos: action.actor.furos,
@@ -339,7 +342,7 @@ module Mjai
                  double_reach: action.actor.double_reach?,
                  ippatsu: action.actor.ippatsu_chance?,
                  rinshan: action.actor.rinshan?,
-                 haitei: (num_pipais == 0 && !action.actor.rinshan?),
+                 haitei: (num_pipais.zero? && !action.actor.rinshan?),
                  first_turn: @first_turn,
                  chankan: params[:previous_action].type == :kakan
                })
@@ -378,8 +381,7 @@ module Mjai
         result << (format("%s%s%d%s tehai: %s %s\n", player == @actor ? '*' : ' ', player == @oya ? '{' : '[', i,
                           player == @oya ? '}' : ']', Pai.dump_pais(player.tehais), player.furos.join(' ')))
         ho_str = if player.reach_ho_index
-                   Pai.dump_pais(player.ho[0...player.reach_ho_index]) + '=' +
-                     Pai.dump_pais(player.ho[player.reach_ho_index..-1])
+                   "#{Pai.dump_pais(player.ho[0...player.reach_ho_index])}=#{Pai.dump_pais(player.ho[player.reach_ho_index..])}"
                  else
                    Pai.dump_pais(player.ho)
                  end
