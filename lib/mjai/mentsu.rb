@@ -18,7 +18,7 @@ module Mjai
     attr_reader(:fields)
 
     def inspect
-      format("\#<%p %p>", self.class, @fields)
+      "\#<#{self.class} #{@fields}>"
     end
 
     def ==(other)

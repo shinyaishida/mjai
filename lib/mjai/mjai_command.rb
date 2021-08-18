@@ -61,7 +61,7 @@ module Mjai
                 exit(1)
               end
               paths.each do |path|
-                conv.convert(path, format('%s.%s', path, opts['output_type']))
+                conv.convert(path, "#{path}.#{opts['output_type']}")
               end
             end
           else

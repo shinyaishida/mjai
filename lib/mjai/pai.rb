@@ -60,9 +60,9 @@ module Mjai
         raise(ArgumentError, 'Wrong number of args.')
       end
       if !@type.nil? || !@number.nil?
-        raise(format('Bad type: %p', @type)) unless %w[m p s t].include?(@type)
-        raise(format('number must be Integer: %p', @number)) unless @number.is_a?(Integer)
-        raise(format('red must be boolean: %p', @red)) if @red != true && @red != false
+        raise("Bad type: #{@type}") unless %w[m p s t].include?(@type)
+        raise("number must be Integer: #{@number}") unless @number.is_a?(Integer)
+        raise("red must be boolean: #{@red}") if @red != true && @red != false
       end
     end
 
@@ -72,12 +72,12 @@ module Mjai
       elsif @type == 't'
         TSUPAI_STRS[@number]
       else
-        format('%d%s%s', @number, @type, @red ? 'r' : '')
+        "#{@number}#{@type}#{@red ? 'r' : ''}"
       end
     end
 
     def inspect
-      'Pai[%s]' % to_s
+      "Pai[#{self}]"
     end
 
     attr_reader(:type, :number)

@@ -154,7 +154,7 @@ module Mjai
     def update_state(action)
       super(action)
       if action.type == :tsumo && @pipais.size != num_pipais
-        raise(format('num pipais mismatch: %p != %p', @pipais.size, num_pipais))
+        raise("num pipais mismatch: #{@pipais.size} != #{num_pipais}")
       end
     end
 

@@ -21,12 +21,12 @@ module Mjai
       begin
         from_plain(plain, nil, game)
       rescue ValidationError => e
-        raise(ValidationError, format('%s JSON: %s', e.message, json))
+        raise(ValidationError, "#{e.message} JSON: #{json}")
       end
     end
 
     def self.from_plain(plain, name, game)
-      validate(plain.is_a?(Hash), format('%s must be an object.', (name || 'The response')))
+      validate(plain.is_a?(Hash), "#{name || 'The response'} must be an object.")
       fields = {}
       @@field_specs.each do |field_name, type|
         field_plain = plain[field_name.to_s]
@@ -69,7 +69,7 @@ module Mjai
         begin
           Pai.new(plain)
         rescue ArgumentError => e
-          raise(ValidationError, format('Error in %s: %s', name, e.message))
+          raise(ValidationError, "Error in #{name}: #{e.message}")
         end
       when :yaku
         validate_class(plain, Array, name)
@@ -116,7 +116,7 @@ module Mjai
     end
 
     def self.validate_class(plain, klass, name)
-      validate(plain.is_a?(klass), format('%s must be %p.', name, klass))
+      validate(plain.is_a?(klass), "#{name} must be #{klass}.")
     end
 
     def initialize(fields)

@@ -262,7 +262,7 @@ module Mjai
     end
 
     def inspect
-      format("\#<%p shanten=%d pais=<%s>>", self.class, @shanten, @pais.join(' '))
+      "\#<#{self.class} shanten=#{@shanten} pais=<#{@pais.join(' ')}>>"
     end
   end
 end

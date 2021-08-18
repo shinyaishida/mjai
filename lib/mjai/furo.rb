@@ -43,12 +43,12 @@ module Mjai
       if type == :ankan
         '[# %s %s #]' % consumed[0, 2]
       else
-        format('[%s(%p)/%s]', taken, target && target.id, consumed.join(' '))
+        "[#{taken}(#{target&.id})/#{consumed.join(' ')}]"
       end
     end
 
     def inspect
-      format("\#<%p %s>", self.class, to_s)
+      "\#<#{self.class} #{self}>"
     end
   end
 end

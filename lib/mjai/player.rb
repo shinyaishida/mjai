@@ -384,7 +384,7 @@ module Mjai
 
     def delete_tehai(pai)
       pai_index = @tehais.index(pai) || @tehais.index(Pai::UNKNOWN)
-      raise(format('trying to delete %p which is not in tehais: %p', pai, @tehais)) unless pai_index
+      raise("trying to delete #{pai} which is not in tehais: #{@tehais}") unless pai_index
 
       @tehais.delete_at(pai_index)
     end
@@ -398,7 +398,7 @@ module Mjai
     end
 
     def inspect
-      format("\#<%p:%p>", self.class, id)
+      "\#<#{self.class}:#{@id}>"
     end
   end
 end

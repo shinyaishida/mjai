@@ -12,7 +12,7 @@ module Mjai
     end
 
     def respond_to_action(action)
-      puts(format('is action actor me?  %s', (action.actor == self)))
+      puts "is action actor me?  #{action.actor == self}"
       if action.actor == self
         case action.type
 

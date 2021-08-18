@@ -1,4 +1,4 @@
-# frozen_string_literal: true
+# frozen_string_literal: false
 
 require 'mjai/action'
 require 'mjai/pai'
@@ -157,7 +157,7 @@ module Mjai
           validate_response_content(response, action) if response
         rescue ValidationError => e
           raise(ValidationError,
-                format("Error in player %d's response: %s Response: %s", i, e.message, response))
+                "Error in player #{i}'s response: #{e.message} Response: #{response}")
         end
       end
     end
@@ -211,7 +211,7 @@ module Mjai
       end
       unless valid
         raise(ValidationError,
-              format("Unexpected response type '%s' for %s.", response ? response.type : :none, action))
+              "Unexpected response type '#{response ? response.type : :none}' for #{action}.")
       end
     end
 
@@ -238,7 +238,7 @@ module Mjai
             tsumo_pai = response.actor.tehais[-1]
             validate(
               response.pai == tsumo_pai,
-              format('tsumogiri is true but the pai is not tsumo pai: %s != %s', response.pai, tsumo_pai)
+              "tsumogiri is true but the pai is not tsumo pai: #{response.pai} != #{tsumo_pai}"
             )
           else
             validate(
@@ -286,12 +286,12 @@ module Mjai
           tsumo_pai = response.actor.tehais[-1]
           validate(
             response.pai == tsumo_pai,
-            format('pai is not tsumo pai: %s != %s', response.pai, tsumo_pai)
+            "pai is not tsumo pai: #{response.pai} != #{tsumo_pai}"
           )
         else
           validate(
             response.pai == action.pai,
-            format('pai is not previous dahai: %s != %s', response.pai, action.pai)
+            "pai is not previous dahai: #{response.pai} != #{action.pai}"
           )
         end
         validate(response.actor.can_hora?, 'Cannot hora.')
@@ -371,21 +371,20 @@ module Mjai
 
     def render_board
       result = ''
-      result << (format('%s-%d kyoku %d honba  ', @bakaze, @kyoku_num, @honba)) if @bakaze && @kyoku_num && @honba
-      result << ('pipai: %d  ' % num_pipais) if num_pipais
-      result << ('dora_marker: %s  ' % @dora_markers.join(' ')) if @dora_markers
+      result << "#{@bakaze}-#{@kyoku_num} kyoku #{@honba} honba  " if @bakaze && @kyoku_num && @honba
+      result << "pipai: #{num_pipais}  " if num_pipais
+      result << "dora_marker: #{@dora_markers.join(' ')}  " if @dora_markers
       result << "\n"
       @players.each_with_index do |player, i|
         next unless player.tehais
 
-        result << (format("%s%s%d%s tehai: %s %s\n", player == @actor ? '*' : ' ', player == @oya ? '{' : '[', i,
-                          player == @oya ? '}' : ']', Pai.dump_pais(player.tehais), player.furos.join(' ')))
+        result << "#{player == @actor ? '*' : ' '}#{player == @oya ? '{' : '['}#{i}#{player == @oya ? '}' : ']'} tehai: #{Pai.dump_pais(player.tehais)} #{player.furos.join(' ')}\n"
         ho_str = if player.reach_ho_index
                    "#{Pai.dump_pais(player.ho[0...player.reach_ho_index])}=#{Pai.dump_pais(player.ho[player.reach_ho_index..])}"
                  else
                    Pai.dump_pais(player.ho)
                  end
-        result << ("     ho:    %s\n" % ho_str)
+        result << "     ho:    #{ho_str}\n"
       end
       result << ('-' * 80) << "\n"
       result

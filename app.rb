@@ -25,14 +25,14 @@ class LocalError < StandardError
 end
 
 # TCPGameServer#server_url()
-server_url = format('mjsonp://%s:%d/%s', params[:host], params[:port], params[:room])
+server_url = "mjsonp://#{params[:host]}:#{params[:port]}/#{params[:room]}"
 
 # TCPActiveGameServer#num_tcp_players()
 num_tcp_players = 4
 
-puts(format('Listening on host %s, port %d', params[:host], params[:port]))
-puts('URL: %s' % server_url)
-puts('Waiting for %d players...' % num_tcp_players)
+puts "Listening on host #{params[:host]}, port #{params[:port]}"
+puts "URL:#{server_url}"
+puts "Waiting for #{num_tcp_players} players..."
 
 pids = []
 
@@ -46,7 +46,7 @@ end
 App = lambda do |env|
   if Faye::WebSocket.websocket?(env)
     ws = Faye::WebSocket.new(env)
-    player = Mjai::WebSocketPlayer.new(ws, format('player%d', players.length + 1))
+    player = Mjai::WebSocketPlayer.new(ws, "player#{players.length + 1}")
 
     ws.send({
               'type' => 'hello',

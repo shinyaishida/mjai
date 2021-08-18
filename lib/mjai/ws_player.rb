@@ -22,26 +22,26 @@ module Mjai
     end
 
     def respond_to_action(action)
-      puts(format("server -> player %d\t%s", id, action.to_json))
+      puts "server -> player #{id}\t#{action.to_json}"
       @websocket.send(action.to_json)
       @line = nil
       sleep 0.1 while @line.nil?
       if @line
-        puts(format("server <- player %d\t%s", id, @line))
+        puts "server <- player #{id}\t#{@line}"
         Action.from_json(@line.chomp, game)
       else
-        puts('server :  Player %d has disconnected.' % id)
+        puts "server :  Player #{id} has disconnected."
         Action.new({ type: :none })
       end
     rescue Timeout::Error
       create_action({
                       type: :error,
-                      message: format('Timeout. No response in %d sec.', TIMEOUT_SEC)
+                      message: "Timeout. No response in #{TIMEOUT_SEC} sec."
                     })
     rescue JSON::ParserError => e
       create_action({
                       type: :error,
-                      message: 'JSON syntax error: %s' % e.message
+                      message: "JSON syntax error: #{e.message}"
                     })
     rescue ValidationError => e
       create_action({
