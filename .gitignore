@@ -10,3 +10,4 @@ nohup.out
 doc/external/*
 log
 vendor
+node_modules/
