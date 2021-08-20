@@ -37,11 +37,7 @@
 
     <div class="controller-container">
       <div><button id="connect-button" onclick="startGame()">Connect</button></div>
-      <div><input type=file id="mjsonfile" /></div>
-      <div>
-        注: Chrome以外のブラウザでは動かないかも。
-      </div>
-      <div>
+      <!-- <div>
         <select id="kyokuSelector"></select>
       </div>
       <div>
@@ -49,13 +45,13 @@
         <button id="next-button">Next</button>
         <input id="action-id-label" type="text" size="3" value="0">
         <button id="go-button">Go</button>
-      </div>
+      </div> -->
       <table border="0">
         <tr>
           <th>#</th>
           <th>Name</th>
           <th>Score</th>
-          <th><button id="viewpoint-button">Viewpoint</button></th>
+          <!-- <th><button id="viewpoint-button">Viewpoint</button></th> -->
         </tr>
         <tr id="playerInfos" class="repeated">
           <td id="playerInfos.index"></td>
@@ -67,7 +63,7 @@
       <div id="action-label"></div>
       <div id="log-label" class="log-label"></div>
     </div>
-    <script>
+    <!-- <script>
       let input_file = document.getElementById("mjsonfile")
       let allActions = []
       input_file.onchange = () => {
@@ -81,7 +77,7 @@
         };
         reader.readAsText(input_file.files[0]);
       };
-    </script>
+    </script> -->
   </body>
 
 </html>

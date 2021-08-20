@@ -474,65 +474,65 @@ renderCurrentAction = function () {
   return renderAction(getCurrentKyoku().actions[currentActionId]);
 };
 
-goNext = function () {
-  if (currentActionId === getCurrentKyoku().actions.length - 1) {
-    return;
-  }
-  ++currentActionId;
-  $("#action-id-label").val(currentActionId);
-  return renderCurrentAction();
-};
+// goNext = function () {
+//   if (currentActionId === getCurrentKyoku().actions.length - 1) {
+//     return;
+//   }
+//   ++currentActionId;
+//   $("#action-id-label").val(currentActionId);
+//   return renderCurrentAction();
+// };
 
-goBack = function () {
-  if (currentActionId === 0) {
-    return;
-  }
-  --currentActionId;
-  $("#action-id-label").val(currentActionId);
-  return renderCurrentAction();
-};
+// goBack = function () {
+//   if (currentActionId === 0) {
+//     return;
+//   }
+//   --currentActionId;
+//   $("#action-id-label").val(currentActionId);
+//   return renderCurrentAction();
+// };
 
-loadMjson = function () {
-  var action, bakazeStr, honba, i, j, kyokuNum, label, playerInfoView, playerView, _i, _j, _k, _l, _len, _ref;
-  $("#board").click(goNext);
-  $("#go-button").click(function () {
-    currentActionId = parseInt($("#action-id-label").val());
-    return renderCurrentAction();
-  });
-  $("#kyokuSelector").change(function () {
-    currentKyokuId = parseInt($("#kyokuSelector").val());
-    currentActionId = 0;
-    return renderCurrentAction();
-  });
-  $("#viewpoint-button").click(function () {
-    currentViewpoint = (currentViewpoint + 1) % 4;
-    return renderCurrentAction();
-  });
-  for (_i = 0, _len = allActions.length; _i < _len; _i++) {
-    action = allActions[_i];
-    loadAction(action);
-  }
-  Dytem.init();
-  for (i = _j = 0; _j < 4; i = ++_j) {
-    playerView = Dytem.players.append();
-    playerView.addClass("player-" + i);
-    for (j = _k = 0; _k < 3; j = ++_k) {
-      playerView.hoRows.append();
-    }
-    playerInfoView = Dytem.playerInfos.append();
-    playerInfoView.index.text(i);
-    playerInfoView.name.text(playerInfos[i].name);
-  }
-  for (i = _l = 0, _ref = kyokus.length; 0 <= _ref ? _l < _ref : _l > _ref; i = 0 <= _ref ? ++_l : --_l) {
-    bakazeStr = BAKAZE_TO_STR[kyokus[i].bakaze];
-    honba = kyokus[i].honba;
-    kyokuNum = kyokus[i].kyokuNum;
-    label = "" + bakazeStr + kyokuNum + "局 " + honba + "本場";
-    $("#kyokuSelector").get(0).options[i] = new Option(label, i);
-  }
-  console.log("loaded");
-  return renderCurrentAction();
-};
+// loadMjson = function () {
+//   var action, bakazeStr, honba, i, j, kyokuNum, label, playerInfoView, playerView, _i, _j, _k, _l, _len, _ref;
+//   $("#board").click(goNext);
+//   $("#go-button").click(function () {
+//     currentActionId = parseInt($("#action-id-label").val());
+//     return renderCurrentAction();
+//   });
+//   $("#kyokuSelector").change(function () {
+//     currentKyokuId = parseInt($("#kyokuSelector").val());
+//     currentActionId = 0;
+//     return renderCurrentAction();
+//   });
+//   $("#viewpoint-button").click(function () {
+//     currentViewpoint = (currentViewpoint + 1) % 4;
+//     return renderCurrentAction();
+//   });
+//   for (_i = 0, _len = allActions.length; _i < _len; _i++) {
+//     action = allActions[_i];
+//     loadAction(action);
+//   }
+//   Dytem.init();
+//   for (i = _j = 0; _j < 4; i = ++_j) {
+//     playerView = Dytem.players.append();
+//     playerView.addClass("player-" + i);
+//     for (j = _k = 0; _k < 3; j = ++_k) {
+//       playerView.hoRows.append();
+//     }
+//     playerInfoView = Dytem.playerInfos.append();
+//     playerInfoView.index.text(i);
+//     playerInfoView.name.text(playerInfos[i].name);
+//   }
+//   for (i = _l = 0, _ref = kyokus.length; 0 <= _ref ? _l < _ref : _l > _ref; i = 0 <= _ref ? ++_l : --_l) {
+//     bakazeStr = BAKAZE_TO_STR[kyokus[i].bakaze];
+//     honba = kyokus[i].honba;
+//     kyokuNum = kyokus[i].kyokuNum;
+//     label = "" + bakazeStr + kyokuNum + "局 " + honba + "本場";
+//     $("#kyokuSelector").get(0).options[i] = new Option(label, i);
+//   }
+//   console.log("loaded");
+//   return renderCurrentAction();
+// };
 
 initPlayerInfo = async function () {
   Dytem.init();
@@ -550,31 +550,31 @@ initPlayerInfo = async function () {
   }
 };
 
-initGame = async function () {
-  $("#board").click(next);
+// initGame = async function () {
+//   $("#board").click(next);
 
-  initPlayerInfo();
+//   initPlayerInfo();
 
-  while (!gameEnded) {
-    ++currentActionId;
-    $("#action-id-label").val(currentActionId);
-    const action = allActions[currentActionId];
-    if (action.actor == playerId) {
-      if (action.type != "tsumo") {
-        wait_click = true;
-        while (wait_click) {
-          await sleep(1000);
-          console.log("wait")
-        }
-      }
-    }
-    loadAction(action);
-    if (currentKyokuId >= 0) {
-      renderAction(action);
-    }
-    await sleep(100);
-  }
-};
+//   while (!gameEnded) {
+//     ++currentActionId;
+//     $("#action-id-label").val(currentActionId);
+//     const action = allActions[currentActionId];
+//     if (action.actor == playerId) {
+//       if (action.type != "tsumo") {
+//         wait_click = true;
+//         while (wait_click) {
+//           await sleep(1000);
+//           console.log("wait")
+//         }
+//       }
+//     }
+//     loadAction(action);
+//     if (currentKyokuId >= 0) {
+//       renderAction(action);
+//     }
+//     await sleep(100);
+//   }
+// };
 
 startGame = async function () {
   let names;
