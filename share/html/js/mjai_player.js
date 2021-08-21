@@ -37,9 +37,9 @@ let gameEnded = false;
 // TODO: parse start_game action message to extract the exact player ID.
 let playerId = 0;
 // let wait_click;
-let my_id;
-let pai_index;
-let wait_dahai = false;
+let myPlayerId;
+let haiIndex;
+let waitingDahai = false;
 
 const parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -416,11 +416,11 @@ const renderAction = function (action) {
       renderPais([], view.tehais);
       view.tsumoPai.hide();
     } else if (player.tehais.length % 3 === 2) {
-      my_pais = i === my_id;
-      tehai_maxid = player.tehais.length - 1;
-      renderPais(player.tehais.slice(0, tehai_maxid), view.tehais, [], my_pais);
+      myHais = i === myPlayerId;
+      maxTehaiId = player.tehais.length - 1;
+      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
       view.tsumoPai.show();
-      renderPai(player.tehais[tehai_maxid], view.tsumoPai, tehai_maxid, 1, my_pais);
+      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
     } else {
       renderPais(player.tehais, view.tehais);
       view.tsumoPai.hide();
@@ -576,11 +576,11 @@ const startGame = async function () {
   let names;
   let kyoku = {};
   console.log('Connecting');
-  let server_name = '127.0.0.1';
-  let server_port = 9292;
-  let socket = new WebSocket(`ws://${server_name}:${server_port}`);
+  let serverName = '127.0.0.1';
+  let serverPort = 9292;
+  let socket = new WebSocket(`ws://${serverName}:${serverPort}`);
   socket.onopen = function (event) {
-    console.log(`Connected to server ${server_name}:${server_port}`);
+    console.log(`Connected to server ${serverName}:${serverPort}`);
     socket.send(JSON.stringify({
       type: 'join',
       name: 'kkri-client',
@@ -600,7 +600,7 @@ const startGame = async function () {
       socket.close();
     } else {
       if (msg.type === 'start_game') {
-        my_id = msg.id;
+        myPlayerId = msg.id;
         names = msg.names;
         socket.send(JSON.stringify({ type: 'none' }));
         initPlayerInfo();
@@ -612,22 +612,22 @@ const startGame = async function () {
         if (msg.type === 'start_kyoku') {
           socket.send(JSON.stringify({ type: 'none' }));
         } else if (msg.type === 'tsumo') {
-          if (msg.actor === my_id) {
-            pai_index = -1;
-            wait_dahai = true;
-            while (pai_index < 0) {
+          if (msg.actor === myPlayerId) {
+            haiIndex = -1;
+            waitingDahai = true;
+            while (haiIndex < 0) {
               await sleep(200);
             }
-            wait_dahai = false;
+            waitingDahai = false;
             tehais = msg.tehais;
             tehai_length = tehais.length;
-            if (pai_index < tehai_length) {
-              let dahai = tehais[pai_index];
+            if (haiIndex < tehai_length) {
+              let dahai = tehais[haiIndex];
               console.log(`dahai ${pai}`);
             } else {
-              console.error(`pai index ${pai_index} is out of ${tehais}`);
+              console.error(`pai index ${haiIndex} is out of ${tehais}`);
             }
-            socket.send(JSON.stringify({ type: 'dahai', actor: my_id, pai: dahai, tsumogiri: pai_index === (tehai_length - 1) }));
+            socket.send(JSON.stringify({ type: 'dahai', actor: myPlayerId, pai: dahai, tsumogiri: haiIndex === (tehai_length - 1) }));
           } else {
             socket.send(JSON.stringify({ type: 'none' }));
           }
@@ -653,8 +653,8 @@ const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
 
 $('img.mypai').on('click', function () {
   console.log('clicked!', $(this));
-  if (wait_dahai) {
-    pai_index = $(this).index;
-    wait_dahai = false;
+  if (waitingDahai) {
+    haiIndex = $(this).index;
+    waitingDahai = false;
   }
 });
