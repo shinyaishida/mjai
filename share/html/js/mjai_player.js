@@ -104,7 +104,7 @@ const cloneBoard = function (board) {
     const bv = board[bk];
     if (bk === 'players') {
       newBoard[bk] = [];
-      for (let i = 0; i < bv.length; i++) {
+      for (let i = 0; i < bv.length; i += 1) {
         const player = bv[i];
         const newPlayer = {};
         for (let pk in player) {
@@ -122,7 +122,7 @@ const cloneBoard = function (board) {
 const initPlayers = function (board) {
   const ref = board.players;
   const results = [];
-  for (let i = 0; i < ref.length; i++) {
+  for (let i = 0; i < ref.length; i += 1) {
     const player = ref[i];
     player.tehais = null;
     player.furos = [];
@@ -158,7 +158,7 @@ const loadAction = function (action) {
   const targetPlayer = (board && ('target' in action)) ? board.players[action.target] : null;
   switch (action.type) {
     case 'start_game':
-      for (let i = 0; i < 4; ++i) {
+      for (let i = 0; i < 4; i += 1) {
         playerInfos[i].name = action.names[i];
       }
       break;
@@ -166,7 +166,7 @@ const loadAction = function (action) {
       gameEnded = true;
       break;
     case 'start_kyoku':
-      ++currentKyokuId;
+      currentKyokuId += 1;
       kyoku = {
         actions: [],
         bakaze: action.bakaze,
@@ -180,7 +180,7 @@ const loadAction = function (action) {
         doraMarkers: [action.dora_marker],
       };
       initPlayers(board);
-      for (let i = 0; i < 4; ++i) {
+      for (let i = 0; i < 4; i += 1) {
         board.players[i].tehais = action.tehais[i];
         if (prevBoard) {
           board.players[i].score = prevBoard.players[i].score;
@@ -209,7 +209,7 @@ const loadAction = function (action) {
     case 'daiminkan': {
       targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
       const ref = action.consumed;
-      for (let i = 0; i < ref.length; i++) {
+      for (let i = 0; i < ref.length; i += 1) {
         deleteTehai(actorPlayer, ref[i]);
       }
       actorPlayer.furos = actorPlayer.furos.concat([
@@ -224,7 +224,7 @@ const loadAction = function (action) {
     }
     case 'ankan': {
       const ref1 = action.consumed;
-      for (let i = 0; i < ref1.length; i++) {
+      for (let i = 0; i < ref1.length; i += 1) {
         deleteTehai(actorPlayer, ref1[i]);
       }
       actorPlayer.furos = actorPlayer.furos.concat([
@@ -240,7 +240,7 @@ const loadAction = function (action) {
       actorPlayer.furos = actorPlayer.furos.concat([]);
       const furos = actorPlayer.furos;
       const ref2 = furos.length;
-      for (let i = 0; 0 <= ref2 ? i < ref2 : i > ref2; i += 0 <= ref2 ? 1 : -1) {
+      for (let i = 0; ref2 >= 0 ? i < ref2 : i > ref2; i += ref2 >= 0 ? 1 : -1) {
         if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
           furos[i] = {
             type: 'kakan',
@@ -288,7 +288,8 @@ const deleteTehai = function (player, pai) {
   if (idx < 0) {
     throw 'pai not in tehai';
   }
-  return player.tehais[idx] = null;
+  player.tehais[idx] = null;
+  return player.tehais[idx];
 };
 
 const ripai = function (player) {
@@ -296,14 +297,14 @@ const ripai = function (player) {
     player.tehais = (function () {
       const ref = player.tehais;
       const results = [];
-      for (let i = 0; i < ref.length; i++) {
+      for (let i = 0; i < ref.length; i += 1) {
         const pai = ref[i];
         if (pai) {
           results.push(pai);
         }
       }
       return results;
-    })();
+    }());
     return sortPais(player.tehais);
   }
 };
@@ -360,7 +361,7 @@ const renderPais = function (pais, view, poses, mypai = false) {
   view.resize(pais.length);
   const results = [];
   const ref = pais.length;
-  for (let i = 0; 0 <= ref ? i < ref : i > ref; i += 0 <= ref ? 1 : -1) {
+  for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
     results.push(renderPai(pais[i], view.at(i), i, poses[i], mypai));
   }
   return results;
@@ -371,7 +372,7 @@ const renderHo = function (player, offset, pais, view) {
   view.resize(pais.length);
   const results = [];
   const ref = pais.length;
-  for (let i = 0; 0 <= ref ? i < ref : i > ref; i += 0 <= ref ? 1 : -1) {
+  for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
     results.push(renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1));
   }
   return results;
@@ -432,13 +433,13 @@ const renderAction = function (action) {
           [].splice.apply(poses, [laidPos, laidPos - laidPos].concat([3]));
         }
         renderPais(pais, furoView.pais, poses);
-        --j;
+        j -= 1;
       }
     }
   }
   const wanpais = ['?', '?', '?', '?', '?', '?'];
   const ref3 = action.board.doraMarkers.length;
-  for (let i = 0; 0 <= ref3 ? i < ref3 : i > ref3; i += 0 <= ref3 ? 1 : -1) {
+  for (let i = 0; ref3 >= 0 ? i < ref3 : i > ref3; i += ref3 >= 0 ? 1 : -1) {
     wanpais[i + 2] = action.board.doraMarkers[i];
   }
   return renderPais(wanpais, Dytem.wanpais);
@@ -578,42 +579,46 @@ const startGame = async function () {
       }));
     } else if (msg.type === 'error') {
       socket.close();
+    } else if (msg.type === 'start_game') {
+      myPlayerId = msg.id;
+      // names = msg.names;
+      socket.send(JSON.stringify({ type: 'none' }));
+      initPlayerInfo();
     } else {
-      if (msg.type === 'start_game') {
-        myPlayerId = msg.id;
-        // names = msg.names;
+      loadAction(msg);
+      if (currentKyokuId >= 0) {
+        renderAction(msg);
+      }
+      if (msg.type === 'start_kyoku') {
         socket.send(JSON.stringify({ type: 'none' }));
-        initPlayerInfo();
-      } else {
-        loadAction(msg);
-        if (currentKyokuId >= 0) {
-          renderAction(msg);
-        }
-        if (msg.type === 'start_kyoku') {
-          socket.send(JSON.stringify({ type: 'none' }));
-        } else if (msg.type === 'tsumo') {
-          if (msg.actor === myPlayerId) {
-            haiIndex = -1;
-            waitingDahai = true;
-            while (haiIndex < 0) {
-              await sleep(200);
-            }
-            waitingDahai = false;
-            tehais = msg.tehais;
-            tehai_length = tehais.length;
-            if (haiIndex < tehai_length) {
-              let dahai = tehais[haiIndex];
-              console.log(`dahai ${pai}`);
-            } else {
-              console.error(`pai index ${haiIndex} is out of ${tehais}`);
-            }
-            socket.send(JSON.stringify({ type: 'dahai', actor: myPlayerId, pai: dahai, tsumogiri: haiIndex === (tehai_length - 1) }));
-          } else {
-            socket.send(JSON.stringify({ type: 'none' }));
+      } else if (msg.type === 'tsumo') {
+        if (msg.actor === myPlayerId) {
+          haiIndex = -1;
+          waitingDahai = true;
+          while (haiIndex < 0) {
+            await sleep(200);
           }
-        } else if (msg.type === 'dahai') {
+          waitingDahai = false;
+          const tehais = msg.tehais;
+          const tehaiLength = tehais.length;
+          let dahai = null;
+          if (haiIndex < tehaiLength) {
+            dahai = tehais[haiIndex];
+            console.log(`dahai ${dahai}`);
+          } else {
+            console.error(`pai index ${haiIndex} is out of ${tehais}`);
+          }
+          socket.send(JSON.stringify({
+            type: 'dahai',
+            actor: myPlayerId,
+            pai: dahai,
+            tsumogiri: haiIndex === (tehaiLength - 1),
+          }));
+        } else {
           socket.send(JSON.stringify({ type: 'none' }));
         }
+      } else if (msg.type === 'dahai') {
+        socket.send(JSON.stringify({ type: 'none' }));
       }
     }
   };
@@ -625,7 +630,7 @@ const startGame = async function () {
   };
 };
 
-const sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
+const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 
 // const next = function () {
 //   wait_click = false;
