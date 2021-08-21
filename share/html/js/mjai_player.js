@@ -57,11 +57,10 @@ const parsePai = function (pai) {
 };
 
 const comparePais = function (lhs, rhs) {
-  var lhsRep, parsedLhs, parsedRhs, rhsRep;
-  parsedLhs = parsePai(lhs);
-  lhsRep = parsedLhs.type + parsedLhs.number + (parsedLhs.red ? '1' : '0');
-  parsedRhs = parsePai(rhs);
-  rhsRep = parsedRhs.type + parsedRhs.number + (parsedRhs.red ? '1' : '0');
+  const parsedLhs = parsePai(lhs);
+  const lhsRep = parsedLhs.type + parsedLhs.number + (parsedLhs.red ? '1' : '0');
+  const parsedRhs = parsePai(rhs);
+  const rhsRep = parsedRhs.type + parsedRhs.number + (parsedRhs.red ? '1' : '0');
   if (lhsRep < rhsRep) {
     return -1;
   }
@@ -76,18 +75,18 @@ const sortPais = function (pais) {
 };
 
 const paiToImageUrl = function (pai, pose) {
-  var ext, name, parsedPai, redSuffix;
+  let ext;
+  let name;
   if (pai) {
     if (pai === '?') {
       name = 'bk';
       ext = 'gif';
     } else {
-      parsedPai = parsePai(pai);
+      const parsedPai = parsePai(pai);
       if (parsedPai.type === 't') {
         name = TSUPAI_TO_IMAGE_NAME[pai];
       } else {
-        redSuffix = parsedPai.red ? 'r' : '';
-        name = `${parsedPai.type}s${parsedPai.number}${redSuffix}`;
+        name = `${parsedPai.type}s${parsedPai.number}${parsedPai.red ? 'r' : ''}`;
       }
       ext = parsedPai.red ? 'png' : 'gif';
     }
@@ -100,18 +99,16 @@ const paiToImageUrl = function (pai, pose) {
 };
 
 const cloneBoard = function (board) {
-  var bk, bv, newBoard, newPlayer, pk, player, pv, _i, _len;
-  newBoard = {};
-  for (bk in board) {
-    bv = board[bk];
+  const newBoard = {};
+  for (let bk in board) {
+    const bv = board[bk];
     if (bk === 'players') {
       newBoard[bk] = [];
-      for (_i = 0, _len = bv.length; _i < _len; _i++) {
-        player = bv[_i];
-        newPlayer = {};
-        for (pk in player) {
-          pv = player[pk];
-          newPlayer[pk] = pv;
+      for (let i = 0; i < bv.length; i++) {
+        const player = bv[i];
+        const newPlayer = {};
+        for (let pk in player) {
+          newPlayer[pk] = player[pk];
         }
         newBoard[bk].push(newPlayer);
       }
@@ -123,18 +120,17 @@ const cloneBoard = function (board) {
 };
 
 const initPlayers = function (board) {
-  var player, _i, _len, _ref, _results;
-  _ref = board.players;
-  _results = [];
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    player = _ref[_i];
+  const ref = board.players;
+  const results = [];
+  for (let i = 0; i < ref.length; i++) {
+    const player = ref[i];
     player.tehais = null;
     player.furos = [];
     player.ho = [];
     player.reach = false;
-    _results.push(player.reachHoIndex = null);
+    results.push(player.reachHoIndex = null);
   }
-  return _results;
+  return results;
 };
 
 const removeRed = function (pai) {
@@ -149,7 +145,8 @@ const removeRed = function (pai) {
 
 const loadAction = function (action) {
   console.log(action);
-  var actorPlayer, board, furos, i, kyoku, pai, prevBoard, targetPlayer, _i, _j, _k, _l, _len, _len1, _m, _n, _o, _ref, _ref1, _ref2;
+  let board;
+  let kyoku;
   if (kyokus.length > 0) {
     kyoku = kyokus[kyokus.length - 1];
     board = cloneBoard(kyoku.actions[kyoku.actions.length - 1].board);
@@ -157,19 +154,11 @@ const loadAction = function (action) {
     kyoku = null;
     board = null;
   }
-  if (board && ('actor' in action)) {
-    actorPlayer = board.players[action.actor];
-  } else {
-    actorPlayer = null;
-  }
-  if (board && ('target' in action)) {
-    targetPlayer = board.players[action.target];
-  } else {
-    targetPlayer = null;
-  }
+  const actorPlayer = (board && ('actor' in action)) ? board.players[action.actor] : null;
+  const targetPlayer = (board && ('target' in action)) ? board.players[action.target] : null;
   switch (action.type) {
     case 'start_game':
-      for (i = _i = 0; _i < 4; i = ++_i) {
+      for (let i = 0; i < 4; ++i) {
         playerInfos[i].name = action.names[i];
       }
       break;
@@ -185,13 +174,13 @@ const loadAction = function (action) {
         honba: action.honba,
       };
       kyokus.push(kyoku);
-      prevBoard = board;
+      const prevBoard = board;
       board = {
         players: [{}, {}, {}, {}],
         doraMarkers: [action.dora_marker],
       };
       initPlayers(board);
-      for (i = _j = 0; _j < 4; i = ++_j) {
+      for (let i = 0; i < 4; ++i) {
         board.players[i].tehais = action.tehais[i];
         if (prevBoard) {
           board.players[i].score = prevBoard.players[i].score;
@@ -217,12 +206,11 @@ const loadAction = function (action) {
       break;
     case 'chi':
     case 'pon':
-    case 'daiminkan':
+    case 'daiminkan': {
       targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
-      _ref = action.consumed;
-      for (_k = 0, _len = _ref.length; _k < _len; _k++) {
-        pai = _ref[_k];
-        deleteTehai(actorPlayer, pai);
+      const ref = action.consumed;
+      for (let i = 0; i < ref.length; i++) {
+        deleteTehai(actorPlayer, ref[i]);
       }
       actorPlayer.furos = actorPlayer.furos.concat([
         {
@@ -233,11 +221,11 @@ const loadAction = function (action) {
         },
       ]);
       break;
-    case 'ankan':
-      _ref1 = action.consumed;
-      for (_l = 0, _len1 = _ref1.length; _l < _len1; _l++) {
-        pai = _ref1[_l];
-        deleteTehai(actorPlayer, pai);
+    }
+    case 'ankan': {
+      const ref1 = action.consumed;
+      for (let i = 0; i < ref1.length; i++) {
+        deleteTehai(actorPlayer, ref1[i]);
       }
       actorPlayer.furos = actorPlayer.furos.concat([
         {
@@ -246,11 +234,13 @@ const loadAction = function (action) {
         },
       ]);
       break;
-    case 'kakan':
+    }
+    case 'kakan': {
       deleteTehai(actorPlayer, action.pai);
       actorPlayer.furos = actorPlayer.furos.concat([]);
-      furos = actorPlayer.furos;
-      for (i = _m = 0, _ref2 = furos.length; 0 <= _ref2 ? _m < _ref2 : _m > _ref2; i = 0 <= _ref2 ? ++_m : --_m) {
+      const furos = actorPlayer.furos;
+      const ref2 = furos.length;
+      for (let i = 0; 0 <= ref2 ? i < ref2 : i > ref2; i += 0 <= ref2 ? 1 : -1) {
         if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
           furos[i] = {
             type: 'kakan',
@@ -261,6 +251,7 @@ const loadAction = function (action) {
         }
       }
       break;
+    }
     case 'hora':
     case 'ryukyoku':
       break;
@@ -273,12 +264,12 @@ const loadAction = function (action) {
       throw `unknown action: ${action.type}`;
   }
   if (action.scores) {
-    for (i = _n = 0; _n < 4; i = ++_n) {
+    for (let i = 0; i < 4; i += 1) {
       board.players[i].score = action.scores[i];
     }
   }
   if (kyoku) {
-    for (i = _o = 0; _o < 4; i = ++_o) {
+    for (let i = 0; i < 4; i += 1) {
       if (action.actor !== undefined && i !== action.actor) {
         ripai(board.players[i]);
       }
@@ -289,9 +280,8 @@ const loadAction = function (action) {
 };
 
 const deleteTehai = function (player, pai) {
-  var idx;
   player.tehais = player.tehais.concat([]);
-  idx = player.tehais.lastIndexOf(pai);
+  let idx = player.tehais.lastIndexOf(pai);
   if (idx < 0) {
     idx = player.tehais.lastIndexOf('?');
   }
@@ -302,19 +292,17 @@ const deleteTehai = function (player, pai) {
 };
 
 const ripai = function (player) {
-  var pai;
   if (player.tehais) {
     player.tehais = (function () {
-      var _i, _len, _ref, _results;
-      _ref = player.tehais;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        pai = _ref[_i];
+      const ref = player.tehais;
+      const results = [];
+      for (let i = 0; i < ref.length; i++) {
+        const pai = ref[i];
         if (pai) {
-          _results.push(pai);
+          results.push(pai);
         }
       }
-      return _results;
+      return results;
     })();
     return sortPais(player.tehais);
   }
@@ -367,57 +355,51 @@ const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
 };
 
 const renderPais = function (pais, view, poses, mypai = false) {
-  var i, _i, _ref, _results;
   pais || (pais = []);
   poses || (poses = []);
   view.resize(pais.length);
-  _results = [];
-  for (i = _i = 0, _ref = pais.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-    _results.push(renderPai(pais[i], view.at(i), i, poses[i], mypai));
+  const results = [];
+  const ref = pais.length;
+  for (let i = 0; 0 <= ref ? i < ref : i > ref; i += 0 <= ref ? 1 : -1) {
+    results.push(renderPai(pais[i], view.at(i), i, poses[i], mypai));
   }
-  return _results;
+  return results;
 };
 
 const renderHo = function (player, offset, pais, view) {
-  var i, reachIndex, _i, _ref, _results;
-  if (player.reachHoIndex === null) {
-    reachIndex = null;
-  } else {
-    reachIndex = player.reachHoIndex - offset;
-  }
+  const reachIndex = (player.reachHoIndex === null) ? null : player.reachHoIndex - offset;
   view.resize(pais.length);
-  _results = [];
-  for (i = _i = 0, _ref = pais.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-    _results.push(renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1));
+  const results = [];
+  const ref = pais.length;
+  for (let i = 0; 0 <= ref ? i < ref : i > ref; i += 0 <= ref ? 1 : -1) {
+    results.push(renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1));
   }
-  return _results;
+  return results;
 };
 
 const renderAction = function (action) {
   console.log(action);
-  var dir, displayAction, furo, furoView, ho, i, infoView, j, k, kyoku, laidPos, pais, player, poses, v, view, wanpais, _i, _j, _ref, _ref1, _ref2, _ref3;
-  displayAction = {};
-  for (k in action) {
-    v = action[k];
+  const displayAction = {};
+  for (let k in action) {
     if (k !== 'board' && k !== 'logs') {
-      displayAction[k] = v;
+      displayAction[k] = action[k];
     }
   }
   $('#action-label').text(JSON.stringify(displayAction));
   $('#log-label').text((action.logs && action.logs[currentViewpoint]) || '');
-  kyoku = getCurrentKyoku();
-  for (i = _i = 0; _i < 4; i = ++_i) {
-    player = action.board.players[i];
-    view = Dytem.players.at((i - currentViewpoint + 4) % 4);
-    infoView = Dytem.playerInfos.at(i);
+  const kyoku = getCurrentKyoku();
+  for (let i = 0; i < 4; i += 1) {
+    const player = action.board.players[i];
+    const view = Dytem.players.at((i - currentViewpoint + 4) % 4);
+    const infoView = Dytem.playerInfos.at(i);
     infoView.score.text(player.score);
     infoView.viewpoint.text(i === currentViewpoint ? '+' : '');
     if (!player.tehais) {
       renderPais([], view.tehais);
       view.tsumoPai.hide();
     } else if (player.tehais.length % 3 === 2) {
-      myHais = i === myPlayerId;
-      maxTehaiId = player.tehais.length - 1;
+      const myHais = i === myPlayerId;
+      const maxTehaiId = player.tehais.length - 1;
       renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
       view.tsumoPai.show();
       renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
@@ -425,38 +407,38 @@ const renderAction = function (action) {
       renderPais(player.tehais, view.tehais);
       view.tsumoPai.hide();
     }
-    ho = player.ho || [];
+    const ho = player.ho || [];
     renderHo(player, 0, ho.slice(0, 6), view.hoRows.at(0).pais);
     renderHo(player, 6, ho.slice(6, 12), view.hoRows.at(1).pais);
     renderHo(player, 12, ho.slice(12), view.hoRows.at(2).pais);
     view.furos.resize(player.furos.length);
     if (player.furos) {
-      j = player.furos.length - 1;
+      let j = player.furos.length - 1;
+      let pais;
+      let poses;
       while (j >= 0) {
-        furo = player.furos[j];
-        furoView = view.furos.at(player.furos.length - 1 - j);
+        const furo = player.furos[j];
+        const furoView = view.furos.at(player.furos.length - 1 - j);
         if (furo.type === 'ankan') {
           pais = ['?'].concat(furo.consumed.slice(0, 2)).concat(['?']);
           poses = [1, 1, 1, 1];
         } else {
-          dir = (4 + furo.target - i) % 4;
-          if ((_ref = furo.type) === 'daiminkan' || _ref === 'kakan') {
-            laidPos = [null, 3, 1, 0][dir];
-          } else {
-            laidPos = [null, 2, 1, 0][dir];
-          }
+          const dir = (4 + furo.target - i) % 4;
+          const laidPos = (furo.type === 'daiminkan' || furo.type === 'kakan')
+            ? [null, 3, 1, 0][dir] : [null, 2, 1, 0][dir];
           pais = furo.consumed.concat([]);
           poses = [1, 1, 1];
-          [].splice.apply(pais, [laidPos, laidPos - laidPos].concat(_ref1 = [furo.taken])), _ref1;
-          [].splice.apply(poses, [laidPos, laidPos - laidPos].concat(_ref2 = [3])), _ref2;
+          [].splice.apply(pais, [laidPos, laidPos - laidPos].concat([furo.taken]));
+          [].splice.apply(poses, [laidPos, laidPos - laidPos].concat([3]));
         }
         renderPais(pais, furoView.pais, poses);
         --j;
       }
     }
   }
-  wanpais = ['?', '?', '?', '?', '?', '?'];
-  for (i = _j = 0, _ref3 = action.board.doraMarkers.length; 0 <= _ref3 ? _j < _ref3 : _j > _ref3; i = 0 <= _ref3 ? ++_j : --_j) {
+  const wanpais = ['?', '?', '?', '?', '?', '?'];
+  const ref3 = action.board.doraMarkers.length;
+  for (let i = 0; 0 <= ref3 ? i < ref3 : i > ref3; i += 0 <= ref3 ? 1 : -1) {
     wanpais[i + 2] = action.board.doraMarkers[i];
   }
   return renderPais(wanpais, Dytem.wanpais);
@@ -534,13 +516,13 @@ const initPlayerInfo = async function () {
   Dytem.init();
   // i: player id   0 <= i <= 3
   // j: ho row id   0 <= j <= 2
-  for (i = _j = 0; _j < 4; i = ++_j) {
-    playerView = Dytem.players.append();
+  for (let i = 0; i < 4; i += 1) {
+    const playerView = Dytem.players.append();
     playerView.addClass(`player-${i}`);
-    for (j = _k = 0; _k < 3; j = ++_k) {
+    for (let j = 0; j < 3; j += 1) {
       playerView.hoRows.append();
     }
-    playerInfoView = Dytem.playerInfos.append();
+    const playerInfoView = Dytem.playerInfos.append();
     playerInfoView.index.text(i);
     playerInfoView.name.text(playerInfos[i].name);
   }
@@ -573,12 +555,10 @@ const initPlayerInfo = async function () {
 // };
 
 const startGame = async function () {
-  let names;
-  let kyoku = {};
   console.log('Connecting');
-  let serverName = '127.0.0.1';
-  let serverPort = 9292;
-  let socket = new WebSocket(`ws://${serverName}:${serverPort}`);
+  const serverName = '127.0.0.1';
+  const serverPort = 9292;
+  const socket = new WebSocket(`ws://${serverName}:${serverPort}`);
   socket.onopen = function (event) {
     console.log(`Connected to server ${serverName}:${serverPort}`);
     socket.send(JSON.stringify({
@@ -588,7 +568,7 @@ const startGame = async function () {
     }));
   };
   socket.onmessage = async function (event) {
-    let msg = JSON.parse(event.data);
+    const msg = JSON.parse(event.data);
     console.log(`Received '${msg}'`);
     if (msg.type === 'hello') {
       socket.send(JSON.stringify({
@@ -601,7 +581,7 @@ const startGame = async function () {
     } else {
       if (msg.type === 'start_game') {
         myPlayerId = msg.id;
-        names = msg.names;
+        // names = msg.names;
         socket.send(JSON.stringify({ type: 'none' }));
         initPlayerInfo();
       } else {
