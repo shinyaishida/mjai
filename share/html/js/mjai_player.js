@@ -91,7 +91,7 @@ const paiToImageUrl = function (pai, pose) {
       }
       ext = parsedPai.red ? 'png' : 'gif';
     }
-    if (pose === void 0) {
+    if (pose === undefined) {
       pose = 1;
     }
     return `http://gimite.net/mjai/images/p_${name}_${pose}.${ext}`;
@@ -279,7 +279,7 @@ const loadAction = function (action) {
   }
   if (kyoku) {
     for (i = _o = 0; _o < 4; i = ++_o) {
-      if (action.actor !== void 0 && i !== action.actor) {
+      if (action.actor !== undefined && i !== action.actor) {
         ripai(board.players[i]);
       }
     }
@@ -339,14 +339,14 @@ const ripai = function (player) {
 //       hoStr = player.ho.join(' ');
 //       _results.push(console.log('[' + i + '] ho: ' + hoStr));
 //     } else {
-//       _results.push(void 0);
+//       _results.push(undefined);
 //     }
 //   }
 //   return _results;
 // };
 
-const renderPai = function (pai, view, index, pose = void 0, mypai = false) {
-  if (pose === void 0) {
+const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
+  if (pose === undefined) {
     pose = 1;
   }
   view.attr('src', paiToImageUrl(pai, pose));
