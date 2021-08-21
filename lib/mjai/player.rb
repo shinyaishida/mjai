@@ -7,7 +7,16 @@ require 'mjai/tenpai_analysis'
 
 module Mjai
   class Player
-    attr_reader :id, :tehais, :furos, :ho, :sutehais, :extra_anpais, :reach_state, :reach_ho_index, :pao_for_id, :attributes # 手牌 # 副露 # 河 (鳴かれた牌を含まない) # 捨牌 (鳴かれた牌を含む) # sutehais以外のこのプレーヤに対する安牌
+    attr_reader :id,
+                :tehais,          # 手牌
+                :furos,           # 副露
+                :ho,              # 河 (鳴かれた牌を含まない)
+                :sutehais,        # 捨牌 (鳴かれた牌を含む)
+                :extra_anpais,    # sutehais以外のこのプレーヤに対する安牌
+                :reach_state,
+                :reach_ho_index,
+                :pao_for_id,
+                :attributes
     attr_accessor :name, :game, :score
 
     def anpais
@@ -400,5 +409,9 @@ module Mjai
     def inspect
       "\#<#{self.class}:#{@id}>"
     end
+
+    private
+
+    def reset; end
   end
 end

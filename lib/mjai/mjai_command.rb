@@ -120,13 +120,13 @@ module Mjai
         else
           raise('should not happen')
         end
-        game = WebSocketClientGame.new({
-                                         player: player,
-                                         url: url,
-                                         name: opts['name'] || player_type
-                                       })
+        profile = {
+          player: player,
+          url: url,
+          name: opts['name'] || player_type
+        }
         Kernel.loop do
-          game.play
+          WebSocketClientGame.new(profile).play
           sleep 5.0
         end
       else
