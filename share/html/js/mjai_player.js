@@ -181,7 +181,7 @@ const loadAction = function (action) {
     case 'end_game':
       gameEnded = true;
       break;
-    case 'start_kyoku':
+    case 'start_kyoku': {
       currentKyokuId += 1;
       kyoku = {
         actions: [],
@@ -205,6 +205,7 @@ const loadAction = function (action) {
         }
       }
       break;
+    }
     case 'end_kyoku':
       break;
     case 'tsumo':
@@ -252,7 +253,7 @@ const loadAction = function (action) {
     case 'kakan': {
       deleteTehai(actorPlayer, action.pai);
       actorPlayer.furos = actorPlayer.furos.concat([]);
-      const furos = actorPlayer.furos;
+      const { furos } = actorPlayer;
       const ref2 = furos.length;
       for (let i = 0; ref2 >= 0 ? i < ref2 : i > ref2; i += ref2 >= 0 ? 1 : -1) {
         if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
@@ -468,7 +469,7 @@ const startGame = async function () {
             await sleep(200);
           }
           waitingDahai = false;
-          const tehais = msg.tehais;
+          const { tehais } = msg;
           const tehaiLength = tehais.length;
           let dahai = null;
           if (haiIndex < tehaiLength) {
