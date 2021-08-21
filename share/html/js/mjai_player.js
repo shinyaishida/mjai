@@ -90,36 +90,34 @@ const paiToImageUrl = function (pai, pose) {
 
 const cloneBoard = function (board) {
   const newBoard = {};
-  for (let bk in board) {
+  Object.keys(board).forEach((bk) => {
     const bv = board[bk];
     if (bk === 'players') {
       newBoard[bk] = [];
-      for (let i = 0; i < bv.length; i += 1) {
-        const player = bv[i];
+      bv.forEach((player) => {
         const newPlayer = {};
-        for (let pk in player) {
+        Object.keys(player).forEach((pk) => {
           newPlayer[pk] = player[pk];
-        }
+        });
         newBoard[bk].push(newPlayer);
-      }
+      });
     } else {
       newBoard[bk] = bv;
     }
-  }
+  });
   return newBoard;
 };
 
 const initPlayers = function (board) {
-  const ref = board.players;
   const results = [];
-  for (let i = 0; i < ref.length; i += 1) {
-    const player = ref[i];
+  board.players.forEach((player) => {
     player.tehais = null;
     player.furos = [];
     player.ho = [];
     player.reach = false;
-    results.push(player.reachHoIndex = null);
-  }
+    player.reachHoIndex = null;
+    results.push(player.reachHoIndex);
+  });
   return results;
 };
 
@@ -149,14 +147,12 @@ const deleteTehai = function (player, pai) {
 const ripai = function (player) {
   if (player.tehais) {
     player.tehais = (function removeNullTiles() {
-      const ref = player.tehais;
       const results = [];
-      for (let i = 0; i < ref.length; i += 1) {
-        const pai = ref[i];
+      player.tehais.forEach((pai) => {
         if (pai) {
           results.push(pai);
         }
-      }
+      });
       return results;
     }());
     return sortPais(player.tehais);
@@ -228,10 +224,9 @@ const loadAction = function (action) {
     case 'pon':
     case 'daiminkan': {
       targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
-      const ref = action.consumed;
-      for (let i = 0; i < ref.length; i += 1) {
-        deleteTehai(actorPlayer, ref[i]);
-      }
+      action.consumed.forEach((tile) => {
+        deleteTehai(actorPlayer, tile);
+      });
       actorPlayer.furos = actorPlayer.furos.concat([
         {
           type: action.type,
@@ -243,10 +238,9 @@ const loadAction = function (action) {
       break;
     }
     case 'ankan': {
-      const ref1 = action.consumed;
-      for (let i = 0; i < ref1.length; i += 1) {
-        deleteTehai(actorPlayer, ref1[i]);
-      }
+      action.consumed.forEach((tile) => {
+        deleteTehai(actorPlayer, tile);
+      });
       actorPlayer.furos = actorPlayer.furos.concat([
         {
           type: action.type,
@@ -350,11 +344,11 @@ const getCurrentKyoku = function () {
 const renderAction = function (action) {
   console.log(action);
   const displayAction = {};
-  for (let k in action) {
+  Object.keys(action).forEach((k) => {
     if (k !== 'board' && k !== 'logs') {
       displayAction[k] = action[k];
     }
-  }
+  });
   $('#action-label').text(JSON.stringify(displayAction));
   $('#log-label').text((action.logs && action.logs[currentViewpoint]) || '');
   const kyoku = getCurrentKyoku();
