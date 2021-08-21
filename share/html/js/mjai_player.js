@@ -143,6 +143,36 @@ const removeRed = function (pai) {
   return pai;
 };
 
+const deleteTehai = function (player, pai) {
+  player.tehais = player.tehais.concat([]);
+  let idx = player.tehais.lastIndexOf(pai);
+  if (idx < 0) {
+    idx = player.tehais.lastIndexOf('?');
+  }
+  if (idx < 0) {
+    throw 'pai not in tehai';
+  }
+  player.tehais[idx] = null;
+  return player.tehais[idx];
+};
+
+const ripai = function (player) {
+  if (player.tehais) {
+    player.tehais = (function () {
+      const ref = player.tehais;
+      const results = [];
+      for (let i = 0; i < ref.length; i += 1) {
+        const pai = ref[i];
+        if (pai) {
+          results.push(pai);
+        }
+      }
+      return results;
+    }());
+    return sortPais(player.tehais);
+  }
+};
+
 const loadAction = function (action) {
   console.log(action);
   let board;
@@ -279,36 +309,6 @@ const loadAction = function (action) {
   }
 };
 
-const deleteTehai = function (player, pai) {
-  player.tehais = player.tehais.concat([]);
-  let idx = player.tehais.lastIndexOf(pai);
-  if (idx < 0) {
-    idx = player.tehais.lastIndexOf('?');
-  }
-  if (idx < 0) {
-    throw 'pai not in tehai';
-  }
-  player.tehais[idx] = null;
-  return player.tehais[idx];
-};
-
-const ripai = function (player) {
-  if (player.tehais) {
-    player.tehais = (function () {
-      const ref = player.tehais;
-      const results = [];
-      for (let i = 0; i < ref.length; i += 1) {
-        const pai = ref[i];
-        if (pai) {
-          results.push(pai);
-        }
-      }
-      return results;
-    }());
-    return sortPais(player.tehais);
-  }
-};
-
 // const dumpBoard = function (board) {
 //   var consumedStr, furo, hoStr, i, player, tehaisStr, _i, _j, _len, _ref, _results;
 //   _results = [];
@@ -378,6 +378,10 @@ const renderHo = function (player, offset, pais, view) {
   return results;
 };
 
+const getCurrentKyoku = function () {
+  return kyokus[currentKyokuId];
+};
+
 const renderAction = function (action) {
   console.log(action);
   const displayAction = {};
@@ -443,10 +447,6 @@ const renderAction = function (action) {
     wanpais[i + 2] = action.board.doraMarkers[i];
   }
   return renderPais(wanpais, Dytem.wanpais);
-};
-
-const getCurrentKyoku = function () {
-  return kyokus[currentKyokuId];
 };
 
 // renderCurrentAction = function () {
