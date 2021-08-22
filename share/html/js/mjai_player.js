@@ -19,17 +19,14 @@ const BAKAZE_TO_STR = {
   N: '北',
 };
 
-let kyokus = [];
-let currentKyokuId = -1;
-let currentActionId = -1;
-let currentViewpoint = 0;
-let playerInfos = [{}, {}, {}, {}];
-let gameEnded = false;
+let Kyokus = [];
+let CurrentKyokuId = -1;
+let CurrentViewpoint = 0;
+let PlayersInfo = [{}, {}, {}, {}];
 // TODO: parse start_game action message to extract the exact player ID.
-let playerId = 0;
-let myPlayerId;
-let haiIndex;
-let waitingDahai = false;
+let MyPlayerId;
+let TileIndex;
+let WaitingDiscard = false;
 
 const parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -163,8 +160,8 @@ const loadAction = function (action) {
   console.log(action);
   let board;
   let kyoku;
-  if (kyokus.length > 0) {
-    kyoku = kyokus[kyokus.length - 1];
+  if (Kyokus.length > 0) {
+    kyoku = Kyokus[Kyokus.length - 1];
     board = cloneBoard(kyoku.actions[kyoku.actions.length - 1].board);
   } else {
     kyoku = null;
@@ -175,21 +172,18 @@ const loadAction = function (action) {
   switch (action.type) {
     case 'start_game':
       for (let i = 0; i < 4; i += 1) {
-        playerInfos[i].name = action.names[i];
+        PlayersInfo[i].name = action.names[i];
       }
       break;
-    case 'end_game':
-      gameEnded = true;
-      break;
     case 'start_kyoku': {
-      currentKyokuId += 1;
+      CurrentKyokuId += 1;
       kyoku = {
         actions: [],
         bakaze: action.bakaze,
         kyokuNum: action.kyoku,
         honba: action.honba,
       };
-      kyokus.push(kyoku);
+      Kyokus.push(kyoku);
       const prevBoard = board;
       board = {
         players: [{}, {}, {}, {}],
@@ -206,8 +200,6 @@ const loadAction = function (action) {
       }
       break;
     }
-    case 'end_kyoku':
-      break;
     case 'tsumo':
       actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);
       break;
@@ -267,12 +259,13 @@ const loadAction = function (action) {
       }
       break;
     }
-    case 'hora':
-    case 'ryukyoku':
-      break;
     case 'dora':
       board.doraMarkers = board.doraMarkers.concat([action.dora_marker]);
       break;
+    case 'end_game':
+    case 'end_kyoku':
+    case 'hora':
+    case 'ryukyoku':
     case 'error':
       break;
     default:
@@ -339,7 +332,7 @@ const renderHo = function (player, offset, pais, view) {
 };
 
 const getCurrentKyoku = function () {
-  return kyokus[currentKyokuId];
+  return Kyokus[CurrentKyokuId];
 };
 
 const renderAction = function (action) {
@@ -351,19 +344,19 @@ const renderAction = function (action) {
     }
   });
   $('#action-label').text(JSON.stringify(displayAction));
-  $('#log-label').text((action.logs && action.logs[currentViewpoint]) || '');
+  $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
   const kyoku = getCurrentKyoku();
   for (let i = 0; i < 4; i += 1) {
     const player = action.board.players[i];
-    const view = Dytem.players.at((i - currentViewpoint + 4) % 4);
+    const view = Dytem.players.at((i - CurrentViewpoint + 4) % 4);
     const infoView = Dytem.playerInfos.at(i);
     infoView.score.text(player.score);
-    infoView.viewpoint.text(i === currentViewpoint ? '+' : '');
+    infoView.viewpoint.text(i === CurrentViewpoint ? '+' : '');
     if (!player.tehais) {
       renderPais([], view.tehais);
       view.tsumoPai.hide();
     } else if (player.tehais.length % 3 === 2) {
-      const myHais = i === myPlayerId;
+      const myHais = i === MyPlayerId;
       const maxTehaiId = player.tehais.length - 1;
       renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
       view.tsumoPai.show();
@@ -421,7 +414,7 @@ const initPlayerInfo = async function () {
     }
     const playerInfoView = Dytem.playerInfos.append();
     playerInfoView.index.text(i);
-    playerInfoView.name.text(playerInfos[i].name);
+    playerInfoView.name.text(PlayersInfo[i].name);
   }
 };
 
@@ -450,39 +443,39 @@ const startGame = async function () {
     } else if (msg.type === 'error') {
       socket.close();
     } else if (msg.type === 'start_game') {
-      myPlayerId = msg.id;
+      MyPlayerId = msg.id;
       // names = msg.names;
       socket.send(JSON.stringify({ type: 'none' }));
       initPlayerInfo();
     } else {
       loadAction(msg);
-      if (currentKyokuId >= 0) {
+      if (CurrentKyokuId >= 0) {
         renderAction(msg);
       }
       if (msg.type === 'start_kyoku') {
         socket.send(JSON.stringify({ type: 'none' }));
       } else if (msg.type === 'tsumo') {
-        if (msg.actor === myPlayerId) {
-          haiIndex = -1;
-          waitingDahai = true;
-          while (haiIndex < 0) {
+        if (msg.actor === MyPlayerId) {
+          TileIndex = -1;
+          WaitingDiscard = true;
+          while (TileIndex < 0) {
             await sleep(200);
           }
-          waitingDahai = false;
+          WaitingDiscard = false;
           const { tehais } = msg;
           const tehaiLength = tehais.length;
           let dahai = null;
-          if (haiIndex < tehaiLength) {
-            dahai = tehais[haiIndex];
+          if (TileIndex < tehaiLength) {
+            dahai = tehais[TileIndex];
             console.log(`dahai ${dahai}`);
           } else {
-            console.error(`pai index ${haiIndex} is out of ${tehais}`);
+            console.error(`pai index ${TileIndex} is out of ${tehais}`);
           }
           socket.send(JSON.stringify({
             type: 'dahai',
-            actor: myPlayerId,
+            actor: MyPlayerId,
             pai: dahai,
-            tsumogiri: haiIndex === (tehaiLength - 1),
+            tsumogiri: TileIndex === (tehaiLength - 1),
           }));
         } else {
           socket.send(JSON.stringify({ type: 'none' }));
@@ -504,8 +497,8 @@ const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 
 $('img.mypai').on('click', function dahai() {
   console.log('clicked!', $(this));
-  if (waitingDahai) {
-    haiIndex = $(this).index;
-    waitingDahai = false;
+  if (WaitingDiscard) {
+    TileIndex = $(this).index;
+    WaitingDiscard = false;
   }
 });
