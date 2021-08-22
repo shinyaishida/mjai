@@ -282,7 +282,7 @@ const loadAction = function (action) {
       }
     }
     action.board = board;
-    return kyoku.actions.push(action);
+    kyoku.actions.push(action);
   }
 };
 
@@ -311,23 +311,19 @@ const renderPais = function (pais, view, poses, mypai = false) {
   pais || (pais = []);
   poses || (poses = []);
   view.resize(pais.length);
-  const results = [];
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    results.push(renderPai(pais[i], view.at(i), i, poses[i], mypai));
+    renderPai(pais[i], view.at(i), i, poses[i], mypai);
   }
-  return results;
 };
 
 const renderHo = function (player, offset, pais, view) {
   const reachIndex = (player.reachHoIndex === null) ? null : player.reachHoIndex - offset;
   view.resize(pais.length);
-  const results = [];
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    results.push(renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1));
+    renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1);
   }
-  return results;
 };
 
 const getCurrentKyoku = function () {
@@ -398,7 +394,7 @@ const renderAction = function (action) {
   for (let i = 0; ref3 >= 0 ? i < ref3 : i > ref3; i += ref3 >= 0 ? 1 : -1) {
     wanpais[i + 2] = action.board.doraMarkers[i];
   }
-  return renderPais(wanpais, Dytem.wanpais);
+  renderPais(wanpais, Dytem.wanpais);
 };
 
 const initPlayerInfo = async function () {
@@ -422,7 +418,7 @@ const startGame = async function () {
   const serverName = '127.0.0.1';
   const serverPort = 9292;
   const socket = new WebSocket(`ws://${serverName}:${serverPort}`);
-  socket.onopen = function joinGame(event) {
+  socket.onopen = function serverConnected(event) {
     console.log(`Connected to server ${serverName}:${serverPort}`);
     socket.send(JSON.stringify({
       type: 'join',
@@ -430,7 +426,7 @@ const startGame = async function () {
       room: 'default',
     }));
   };
-  socket.onmessage = async function takeAction(event) {
+  socket.onmessage = async function messageReceived(event) {
     const msg = JSON.parse(event.data);
     console.log(`Received '${msg}'`);
     if (msg.type === 'hello') {
@@ -493,10 +489,10 @@ const startGame = async function () {
       }
     }
   };
-  socket.onclose = function quitGame(event) {
+  socket.onclose = function gameClosed(event) {
     console.log(event.data);
   };
-  socket.onerror = function abortGame(event) {
+  socket.onerror = function gameAborted(event) {
     alert(event.data);
   };
 };
