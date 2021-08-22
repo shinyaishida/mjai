@@ -5,118 +5,112 @@ window.Dytem = {
     return Dytem.addChildrenField($('body'), null, Dytem);
   },
   assign(obj, elem) {
-    let childElem; let childObj; let name; let _i; let _len; let _results; let
-      _results2;
+    let childObj;
+    let childElem;
     elem || (elem = Dytem);
     if (typeof obj === 'string') {
       return elem.text(obj);
     } if (obj instanceof Array) {
       elem.clear();
-      _results = [];
-      for (_i = 0, _len = obj.length; _i < _len; _i++) {
-        childObj = obj[_i];
+      const results = [];
+      for (let i = 0; i < obj.length; i += 1) {
+        childObj = obj[i];
         childElem = elem.append();
-        _results.push(Dytem.assign(childObj, childElem));
+        results.push(Dytem.assign(childObj, childElem));
       }
-      return _results;
+      return results;
     }
-    _results2 = [];
-    for (name in obj) {
+    const results2 = [];
+    for (let name in obj) {
       childObj = obj[name];
       if (name === 'text') {
-        _results2.push(elem.text(childObj));
+        results2.push(elem.text(childObj));
       } else if (name === 'html') {
-        _results2.push(elem.html(childObj));
+        results2.push(elem.html(childObj));
       } else if (elem[name]) {
-        _results2.push(Dytem.assign(childObj, elem[name]));
+        results2.push(Dytem.assign(childObj, elem[name]));
       } else if (elem.attr) {
-        _results2.push(elem.attr(name, childObj));
+        results2.push(elem.attr(name, childObj));
       } else {
         throw `unknown field: ${name}`;
       }
     }
-    return _results2;
+    return results2;
   },
   addChildrenField(elem, prefix, target) {
-    const _this = this;
     return elem.find('[id]').each((i, child) => {
-      let childId; let escPrefix; let
-        name;
-      childId = $(child).attr('id');
+      const childId = $(child).attr('id');
       if (prefix) $(child).removeAttr('id');
-      escPrefix = prefix ? prefix.replace(/\./, '\\.') : '';
+      const escPrefix = prefix ? prefix.replace(/\./, '\\.') : '';
       if (childId.match(new RegExp(`^${escPrefix}([^\\.]+)$`))) {
-        name = RegExp.$1;
-        if ($(child).hasClass('repeated')) {
-          return target[name] = new Repeated(childId, $(child));
-        }
-        return target[name] = $(child);
+        const name = RegExp.$1;
+        target[name] = ($(child).hasClass('repeated'))
+          ? new Repeated(childId, $(child))
+          : $(child);
+        return target[name];
       }
     });
   },
 };
 
 Repeated = (function () {
-  function Repeated(__id, __placeholder) {
-    this.__id = __id;
-    this.__placeholder = __placeholder;
-    this.__template = $(document.getElementById(this.__id));
-    this.__elems = [];
+  function Repeated(id, placeholder) {
+    this.id = id;
+    this.placeholder = placeholder;
+    this.template = $(document.getElementById(this.id));
+    this.elements = [];
   }
 
   Repeated.prototype.append = function () {
     let lastElem; let
       newElem;
-    if (this.__elems.length > 0) {
-      lastElem = this.__elems[this.__elems.length - 1];
+    if (this.elements.length > 0) {
+      lastElem = this.elements[this.elements.length - 1];
     } else {
-      lastElem = this.__placeholder;
+      lastElem = this.placeholder;
     }
-    newElem = this.__template.clone();
+    newElem = this.template.clone();
     newElem.removeAttr('id');
-    Dytem.addChildrenField(newElem, `${this.__id}.`, newElem);
+    Dytem.addChildrenField(newElem, `${this.id}.`, newElem);
     newElem.show();
     lastElem.after(newElem);
-    this.__elems.push(newElem);
+    this.elements.push(newElem);
     return newElem;
   };
 
   Repeated.prototype.at = function (idx) {
-    return this.__elems[idx];
+    return this.elements[idx];
   };
 
   Repeated.prototype.size = function () {
-    return this.__elems.length;
+    return this.elements.length;
   };
 
   Repeated.prototype.resize = function (n) {
-    let elem; let i; let _i; let _len; let _ref; let _ref2; let _ref3; let
-      _results;
-    if (n < this.__elems.length) {
-      _ref = this.__elems.slice(n);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        elem = _ref[_i];
+    let elem;
+    if (n < this.elements.length) {
+      const ref = this.elements.slice(n);
+      for (let i = 0; i < ref.length; i += 1) {
+        elem = ref[i];
         elem.remove();
       }
-      return ([].splice.apply(this.__elems, [n, 9e9].concat(_ref2 = [])), _ref2);
-    } if (n > this.__elems.length) {
-      _results = [];
-      for (i = _ref3 = this.__elems.length; _ref3 <= n ? i < n : i > n; _ref3 <= n ? i++ : i--) {
-        _results.push(this.append());
+      return ([].splice.apply(this.elements, [n, 9e9].concat([])), []);
+    } if (n > this.elements.length) {
+      const results = [];
+      const ref3 = this.elements.length;
+      for (let i = this.elements.length; ref3 <= n ? i < n : i > n; i += ref3 <= n ? 1 : -1) {
+        results.push(this.append());
       }
-      return _results;
+      return results;
     }
   };
 
   Repeated.prototype.clear = function () {
-    let elem; let _i; let _len; let
-      _ref;
-    _ref = this.__elems;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      elem = _ref[_i];
-      elem.remove();
+    for (let i = 0; i < this.elements.length; i += 1) {
+      this.elements[i].remove();
     }
-    return this.__elems = [];
+    this.elements = [];
+    return this.elements;
   };
 
   return Repeated;
