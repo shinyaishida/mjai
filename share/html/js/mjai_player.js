@@ -1,5 +1,8 @@
 /* eslint func-names: ["error", "as-needed"] */
 
+// const IMAGE_PATH = 'http://gimite.net/mjai/images';
+const IMAGE_PATH = './images';
+
 const TSUPAIS = [null, 'E', 'S', 'W', 'N', 'P', 'F', 'C'];
 
 const TSUPAI_TO_IMAGE_NAME = {
@@ -81,9 +84,9 @@ const paiToImageUrl = function (pai, pose) {
     if (pose === undefined) {
       pose = 1;
     }
-    return `http://gimite.net/mjai/images/p_${name}_${pose}.${ext}`;
+    return `${IMAGE_PATH}/p_${name}_${pose}.${ext}`;
   }
-  return 'http://gimite.net/mjai/images/blank.png';
+  return `${IMAGE_PATH}/blank.png`;
 };
 
 const cloneBoard = function (board) {
