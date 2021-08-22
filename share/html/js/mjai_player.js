@@ -166,6 +166,7 @@ const ripai = function (player) {
 };
 
 function gameStarted(action) {
+  CurrentViewpoint = action.id;
   for (let i = 0; i < 4; i += 1) {
     PlayersInfo[i].name = action.names[i];
   }
@@ -346,8 +347,8 @@ const renderAction = function (action) {
   const kyoku = getCurrentKyoku();
   for (let i = 0; i < 4; i += 1) {
     const player = action.board.players[i];
-    const view = Dytem.players.at((i - CurrentViewpoint + 4) % 4);
-    const infoView = Dytem.playerInfos.at(i);
+    const view = window.Dytem.players.at((i - CurrentViewpoint + 4) % 4);
+    const infoView = window.Dytem.playerInfos.at(i);
     infoView.score.text(player.score);
     infoView.viewpoint.text(i === CurrentViewpoint ? '+' : '');
     if (!player.tehais) {
@@ -397,20 +398,20 @@ const renderAction = function (action) {
   for (let i = 0; ref3 >= 0 ? i < ref3 : i > ref3; i += ref3 >= 0 ? 1 : -1) {
     wanpais[i + 2] = action.board.doraMarkers[i];
   }
-  renderPais(wanpais, Dytem.wanpais);
+  renderPais(wanpais, window.Dytem.wanpais);
 };
 
 const initPlayerInfo = async function () {
-  Dytem.init();
+  window.Dytem.init();
   // i: player id   0 <= i <= 3
   // j: ho row id   0 <= j <= 2
   for (let i = 0; i < 4; i += 1) {
-    const playerView = Dytem.players.append();
+    const playerView = window.Dytem.players.append();
     playerView.addClass(`player-${i}`);
     for (let j = 0; j < 3; j += 1) {
       playerView.hoRows.append();
     }
-    const playerInfoView = Dytem.playerInfos.append();
+    const playerInfoView = window.Dytem.playerInfos.append();
     playerInfoView.index.text(i);
     playerInfoView.name.text(PlayersInfo[i].name);
   }
@@ -431,7 +432,6 @@ const startGame = async function () {
   };
   socket.onmessage = async function messageReceived(event) {
     const msg = JSON.parse(event.data);
-    console.log(`Received '${msg}'`);
     if (msg.type === 'hello') {
       socket.send(JSON.stringify({
         type: 'join',
@@ -442,7 +442,9 @@ const startGame = async function () {
       socket.close();
     } else if (msg.type === 'start_game') {
       MyPlayerId = msg.id;
+      console.log(msg);
       // names = msg.names;
+      loadAction(msg);
       socket.send(JSON.stringify({ type: 'none' }));
       initPlayerInfo();
     } else {
