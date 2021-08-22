@@ -36,7 +36,8 @@
     </div>
 
     <div class="controller-container">
-      <div><button id="connect-button" onclick="startGame()">Connect</button></div>
+      <div><button id="connect-button" onclick="joinGame()">Connect</button></div>
+      <div><label><input type="checkbox" id="autoplay">Autoplay</label></div>
       <!-- <div>
         <select id="kyokuSelector"></select>
       </div>
@@ -48,9 +49,9 @@
       </div> -->
       <table border="0">
         <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Score</th>
+          <th>風</th>
+          <th>プレイヤー</th>
+          <th>点</th>
           <!-- <th><button id="viewpoint-button">Viewpoint</button></th> -->
         </tr>
         <tr id="playerInfos" class="repeated">

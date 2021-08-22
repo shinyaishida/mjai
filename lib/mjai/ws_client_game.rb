@@ -35,7 +35,7 @@ module Mjai
         p [:open]
         @ws.send(JSON.dump({
                              type: 'join',
-                             name: 'client',
+                             name: @params[:name],
                              room: 'default'
                            }))
       end
@@ -63,7 +63,7 @@ module Mjai
                                       'room' => @uri.path.slice(%r{^/(.*)$}, 1)
                                     })
         when 'error'
-          puts('ERROR: %s' % action_json)
+          puts("ERROR: #{action_json}")
           break
         else
           if msg[:type] == 'start_game'
@@ -79,7 +79,7 @@ module Mjai
           response = responses && responses[@my_id]
           response_json = response ? response.to_json : JSON.dump({ 'type' => 'none' })
         end
-        puts("->\t%s" % response_json)
+        puts("->\t#{response_json}")
         @ws.send(response_json)
       end
     end

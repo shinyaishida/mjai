@@ -23,7 +23,7 @@ module Mjai
       @first_turn = false
     end
 
-    attr_reader :players, :all_pais, :bakaze, :oya, :honba, :dora_markers, :current_action, :previous_action, :all_pais, :num_pipais # ドラ表示牌
+    attr_reader :players, :bakaze, :oya, :honba, :dora_markers, :current_action, :previous_action, :all_pais, :num_pipais # ドラ表示牌
     attr_accessor(:last) # kari
 
     def players=(players)

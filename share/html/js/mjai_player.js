@@ -15,6 +15,7 @@ const TSUPAI_TO_IMAGE_NAME = {
   C: 'ji_c',
 };
 
+const BAKAZE = ['東', '南', '西', '北'];
 const BAKAZE_TO_STR = {
   E: '東',
   S: '南',
@@ -30,7 +31,7 @@ let PlayersInfo = [{}, {}, {}, {}];
 let MyPlayerId;
 let TileIndex;
 let WaitingDiscard = false;
-let AutoPlay = true;
+let AutoPlay = false;
 
 const parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -412,18 +413,20 @@ const initPlayerInfo = async function () {
       playerView.hoRows.append();
     }
     const playerInfoView = window.Dytem.playerInfos.append();
-    playerInfoView.index.text(i);
+    playerInfoView.index.text(BAKAZE[i]);
     playerInfoView.name.text(PlayersInfo[i].name);
   }
 };
 
-const startGame = async function () {
+const joinGame = async function () {
   console.log('Connecting');
   const serverName = '127.0.0.1';
   const serverPort = 9292;
   const socket = new WebSocket(`ws://${serverName}:${serverPort}`);
   socket.onopen = function serverConnected(event) {
     console.log(`Connected to server ${serverName}:${serverPort}`);
+    AutoPlay = document.querySelector('#autoplay').checked;
+    console.log(`Autoplay: ${AutoPlay}`);
     socket.send(JSON.stringify({
       type: 'join',
       name: 'kkri-client',

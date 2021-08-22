@@ -24,15 +24,12 @@ num_finished_games = 0
 class LocalError < StandardError
 end
 
-# TCPGameServer#server_url()
 server_url = "mjsonp://#{params[:host]}:#{params[:port]}/#{params[:room]}"
-
-# TCPActiveGameServer#num_tcp_players()
-num_tcp_players = 4
+num_players = 4
 
 puts "Listening on host #{params[:host]}, port #{params[:port]}"
 puts "URL:#{server_url}"
-puts "Waiting for #{num_tcp_players} players..."
+puts "Waiting for #{num_players} players..."
 
 pids = []
 
@@ -46,8 +43,7 @@ end
 App = lambda do |env|
   if Faye::WebSocket.websocket?(env)
     ws = Faye::WebSocket.new(env)
-    player = Mjai::WebSocketPlayer.new(ws, "player#{players.length + 1}")
-
+    player = Mjai::WebSocketPlayer.new(ws, "player#{players.size + 1}")
     ws.send({
               'type' => 'hello',
               'protocol' => 'mjsonp',
@@ -59,19 +55,20 @@ App = lambda do |env|
       msg = JSON.parse(event.data, symbolize_names: true)
       begin
         if msg[:type] == 'join'
-          raise(LocalError, 'expected action type join but %s' % msg[:type]) if msg[:type] != 'join'
+          raise(LocalError, "expected action type join but #{msg[:type]}") if msg[:type] != 'join'
           raise(LocalError, 'player name not found') unless msg[:name]
           raise(LocalError, 'room not found') unless msg[:room]
-          raise(LocalError, 'No such room found %s' % msg[:room]) if msg[:room] != params[:room]
+          raise(LocalError, "No such room found #{msg[:room]}") if msg[:room] != params[:room]
 
           mutex.synchronize do
-            if players.size >= num_tcp_players
+            if players.size >= num_players
               puts('ERROR: The room is busy. Retry after a while.')
               raise(LocalError, 'The room is busy. Retry after a while.')
             end
+            player.name = (msg[:name]).to_s
             players.push(player)
-            delta = num_tcp_players - players.size
-            puts('Waiting for %s more players...' % delta)
+            delta = num_players - players.size
+            puts("Waiting for #{delta} more players...")
             if delta.zero?
               Thread.new do
                 # TCPActiveGameServer#play_game()
@@ -85,7 +82,7 @@ App = lambda do |env|
         end
       rescue LocalError => e
         error = e.message
-        puts('ERROR: %s' % error)
+        puts("ERROR: #{error}")
         ws.close
       end
     end
