@@ -1,40 +1,34 @@
-let Repeated;
-
 window.Dytem = {
   init() {
     return Dytem.addChildrenField($('body'), null, Dytem);
   },
   assign(obj, elem) {
-    let childObj;
-    let childElem;
     elem || (elem = Dytem);
     if (typeof obj === 'string') {
       return elem.text(obj);
-    } if (obj instanceof Array) {
+    }
+    if (obj instanceof Array) {
       elem.clear();
       const results = [];
       for (let i = 0; i < obj.length; i += 1) {
-        childObj = obj[i];
-        childElem = elem.append();
-        results.push(Dytem.assign(childObj, childElem));
+        results.push(Dytem.assign(obj[i], elem.append()));
       }
       return results;
     }
     const results2 = [];
-    for (let name in obj) {
-      childObj = obj[name];
+    Object.keys(obj).forEach((name) => {
       if (name === 'text') {
-        results2.push(elem.text(childObj));
+        results2.push(elem.text(obj[name]));
       } else if (name === 'html') {
-        results2.push(elem.html(childObj));
+        results2.push(elem.html(obj[name]));
       } else if (elem[name]) {
-        results2.push(Dytem.assign(childObj, elem[name]));
+        results2.push(Dytem.assign(obj[name], elem[name]));
       } else if (elem.attr) {
-        results2.push(elem.attr(name, childObj));
+        results2.push(elem.attr(name, obj[name]));
       } else {
-        throw `unknown field: ${name}`;
+        throw Error(`unknown field: ${name}`);
       }
-    }
+    });
     return results2;
   },
   addChildrenField(elem, prefix, target) {
@@ -53,7 +47,7 @@ window.Dytem = {
   },
 };
 
-Repeated = (function () {
+let Repeated = (function () {
   function Repeated(id, placeholder) {
     this.id = id;
     this.placeholder = placeholder;
@@ -62,14 +56,10 @@ Repeated = (function () {
   }
 
   Repeated.prototype.append = function () {
-    let lastElem; let
-      newElem;
-    if (this.elements.length > 0) {
-      lastElem = this.elements[this.elements.length - 1];
-    } else {
-      lastElem = this.placeholder;
-    }
-    newElem = this.template.clone();
+    const lastElem = (this.elements.length > 0)
+      ? this.elements[this.elements.length - 1]
+      : this.placeholder;
+    const newElem = this.template.clone();
     newElem.removeAttr('id');
     Dytem.addChildrenField(newElem, `${this.id}.`, newElem);
     newElem.show();
@@ -87,18 +77,16 @@ Repeated = (function () {
   };
 
   Repeated.prototype.resize = function (n) {
-    let elem;
     if (n < this.elements.length) {
       const ref = this.elements.slice(n);
       for (let i = 0; i < ref.length; i += 1) {
-        elem = ref[i];
-        elem.remove();
+        ref[i].remove();
       }
       return ([].splice.apply(this.elements, [n, 9e9].concat([])), []);
     } if (n > this.elements.length) {
       const results = [];
       const ref3 = this.elements.length;
-      for (let i = this.elements.length; ref3 <= n ? i < n : i > n; i += ref3 <= n ? 1 : -1) {
+      for (let i = ref3; ref3 <= n ? i < n : i > n; i += ref3 <= n ? 1 : -1) {
         results.push(this.append());
       }
       return results;

@@ -492,6 +492,8 @@ const startGame = async function () {
         socket.send(JSON.stringify({ type: 'none' }));
       } else if (msg.type === 'ankan') {
         socket.send(JSON.stringify({ type: 'none' }));
+      } else if (msg.type === 'dora') {
+        socket.send(JSON.stringify({ type: 'none' }));
       }
     }
   };
