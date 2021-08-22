@@ -27,6 +27,7 @@ let PlayersInfo = [{}, {}, {}, {}];
 let MyPlayerId;
 let TileIndex;
 let WaitingDiscard = false;
+let AutoPlay = true;
 
 const parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -105,18 +106,23 @@ const cloneBoard = function (board) {
   return newBoard;
 };
 
-const initPlayers = function (board) {
-  const results = [];
-  board.players.forEach((player) => {
-    player.tehais = null;
-    player.furos = [];
-    player.ho = [];
-    player.reach = false;
-    player.reachHoIndex = null;
-    results.push(player.reachHoIndex);
-  });
-  return results;
-};
+function createBoard(action, previousBoard) {
+  const board = {
+    players: [],
+    doraMarkers: [action.dora_marker],
+  };
+  for (let i = 0; i < 4; i += 1) {
+    board.players.push({
+      tehais: action.tehais[i],
+      furos: [],
+      ho: [],
+      score: (previousBoard) ? previousBoard.players[i].score : 25000,
+      reach: false,
+      reachHoIndex: null,
+    });
+  }
+  return board;
+}
 
 const removeRed = function (pai) {
   if (!pai) {
@@ -156,26 +162,33 @@ const ripai = function (player) {
   }
 };
 
+function gameStarted(action) {
+  for (let i = 0; i < 4; i += 1) {
+    PlayersInfo[i].name = action.names[i];
+  }
+}
+
+function kyokuStarted(action, board) {
+
+}
+
 const loadAction = function (action) {
   console.log(action);
-  let board;
-  let kyoku;
+  let board = null;
+  let kyoku = null;
+  let actorPlayer = null;
+  let targetPlayer = null;
   if (Kyokus.length > 0) {
     kyoku = Kyokus[Kyokus.length - 1];
     board = cloneBoard(kyoku.actions[kyoku.actions.length - 1].board);
-  } else {
-    kyoku = null;
-    board = null;
+    actorPlayer = ('actor' in action) ? board.players[action.actor] : null;
+    targetPlayer = ('target' in action) ? board.players[action.target] : null;
   }
-  const actorPlayer = (board && ('actor' in action)) ? board.players[action.actor] : null;
-  const targetPlayer = (board && ('target' in action)) ? board.players[action.target] : null;
   switch (action.type) {
     case 'start_game':
-      for (let i = 0; i < 4; i += 1) {
-        PlayersInfo[i].name = action.names[i];
-      }
+      gameStarted(action);
       break;
-    case 'start_kyoku': {
+    case 'start_kyoku':
       CurrentKyokuId += 1;
       kyoku = {
         actions: [],
@@ -184,22 +197,8 @@ const loadAction = function (action) {
         honba: action.honba,
       };
       Kyokus.push(kyoku);
-      const prevBoard = board;
-      board = {
-        players: [{}, {}, {}, {}],
-        doraMarkers: [action.dora_marker],
-      };
-      initPlayers(board);
-      for (let i = 0; i < 4; i += 1) {
-        board.players[i].tehais = action.tehais[i];
-        if (prevBoard) {
-          board.players[i].score = prevBoard.players[i].score;
-        } else {
-          board.players[i].score = 25000;
-        }
-      }
+      board = createBoard(action, board);
       break;
-    }
     case 'tsumo':
       actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);
       break;
@@ -456,27 +455,36 @@ const startGame = async function () {
         socket.send(JSON.stringify({ type: 'none' }));
       } else if (msg.type === 'tsumo') {
         if (msg.actor === MyPlayerId) {
-          TileIndex = -1;
-          WaitingDiscard = true;
-          while (TileIndex < 0) {
-            await sleep(200);
-          }
-          WaitingDiscard = false;
-          const { tehais } = msg;
-          const tehaiLength = tehais.length;
-          let dahai = null;
-          if (TileIndex < tehaiLength) {
-            dahai = tehais[TileIndex];
-            console.log(`dahai ${dahai}`);
+          if (AutoPlay) {
+            socket.send(JSON.stringify({
+              type: 'dahai',
+              actor: MyPlayerId,
+              pai: msg.pai,
+              tsumogiri: true,
+            }));
           } else {
-            console.error(`pai index ${TileIndex} is out of ${tehais}`);
+            TileIndex = -1;
+            WaitingDiscard = true;
+            while (TileIndex < 0) {
+              await sleep(200);
+            }
+            WaitingDiscard = false;
+            const { tehais } = msg;
+            const tehaiLength = tehais.length;
+            let dahai = null;
+            if (TileIndex < tehaiLength) {
+              dahai = tehais[TileIndex];
+              console.log(`dahai ${dahai}`);
+            } else {
+              console.error(`pai index ${TileIndex} is out of ${tehais}`);
+            }
+            socket.send(JSON.stringify({
+              type: 'dahai',
+              actor: MyPlayerId,
+              pai: dahai,
+              tsumogiri: TileIndex === (tehaiLength - 1),
+            }));
           }
-          socket.send(JSON.stringify({
-            type: 'dahai',
-            actor: MyPlayerId,
-            pai: dahai,
-            tsumogiri: TileIndex === (tehaiLength - 1),
-          }));
         } else {
           socket.send(JSON.stringify({ type: 'none' }));
         }
