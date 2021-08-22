@@ -19,17 +19,23 @@ const BAKAZE_TO_STR = {
   N: '北',
 };
 
-let kyokus = [];
-let currentKyokuId = -1;
-let currentActionId = -1;
-let currentViewpoint = 0;
-let playerInfos = [{}, {}, {}, {}];
-let gameEnded = false;
+let Kyokus = [];
+let CurrentKyokuId = -1;
+let CurrentActionId = -1;
+let CurrentViewpoint = 0;
+let PlayersInfo = [{}, {}, {}, {}];
+let GameEnded = false;
 // TODO: parse start_game action message to extract the exact player ID.
-let playerId = 0;
-let myPlayerId;
-let haiIndex;
-let waitingDahai = false;
+let PlayerId = 0;
+let MyPlayerId;
+let TileIndex;
+let WaitingDahai = false;
+let PreviousBoard = null;
+let CurrentBoard = null;
+
+const getCurrentKyoku = function () {
+  return Kyokus[CurrentKyokuId];
+};
 
 const parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
@@ -159,12 +165,91 @@ const ripai = function (player) {
   }
 };
 
+function gameStarted(action) {
+  for (let i = 0; i < 4; i += 1) {
+    PlayersInfo[i].name = action.names[i];
+  }
+}
+
+function gameEnded() {
+  GameEnded = true;
+  PreviousBoard = null;
+  CurrentBoard = null;
+}
+
+function kyokuStarted(action) {
+  CurrentKyokuId += 1;
+  const kyoku = {
+    actions: [],
+    bakaze: action.bakaze,
+    kyokuNum: action.kyoku,
+    honba: action.honba,
+  };
+  Kyokus.push(kyoku);
+  PreviousBoard = CurrentBoard;
+  CurrentBoard = {
+    players: [{}, {}, {}, {}],
+    doraMarkers: [action.dora_marker],
+  };
+  initPlayers(CurrentBoard);
+  for (let i = 0; i < 4; i += 1) {
+    CurrentBoard.players[i].tehais = action.tehais[i];
+    CurrentBoard.players[i].score = (PreviousBoard)
+      ? PreviousBoard.players[i].score
+      : 25000;
+  }
+}
+
+function updateScores(action) {
+  if (action.scores) {
+    for (let i = 0; i < 4; i += 1) {
+      CurrentBoard.players[i].score = action.scores[i];
+    }
+  }
+}
+
+function updateBoard(action) {
+  const kyoku = getCurrentKyoku();
+  if (kyoku) {
+    for (let i = 0; i < 4; i += 1) {
+      if (action.actor !== undefined && i !== action.actor) {
+        ripai(CurrentBoard.players[i]);
+      }
+    }
+    action.board = CurrentBoard;
+    kyoku.actions.push(action);
+  }
+}
+
+function getActorPlayer(action) {
+  return (CurrentBoard && ('actor' in action))
+    ? CurrentBoard.players[action.actor]
+    : null;
+}
+
+function getTargetPlayer(action) {
+  return (CurrentBoard && ('target' in action))
+    ? CurrentBoard.players[action.target]
+    : null;
+}
+
+function tileDrawn(action) {
+  const actorPlayer = getActorPlayer(action);
+  actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);
+}
+
+function tileDiscarded(action) {
+  const actorPlayer = getActorPlayer(action);
+  deleteTehai(actorPlayer, action.pai);
+  actorPlayer.ho = actorPlayer.ho.concat([action.pai]);
+}
+
 const loadAction = function (action) {
   console.log(action);
   let board;
   let kyoku;
-  if (kyokus.length > 0) {
-    kyoku = kyokus[kyokus.length - 1];
+  if (Kyokus.length > 0) {
+    kyoku = Kyokus[Kyokus.length - 1];
     board = cloneBoard(kyoku.actions[kyoku.actions.length - 1].board);
   } else {
     kyoku = null;
@@ -174,46 +259,19 @@ const loadAction = function (action) {
   const targetPlayer = (board && ('target' in action)) ? board.players[action.target] : null;
   switch (action.type) {
     case 'start_game':
-      for (let i = 0; i < 4; i += 1) {
-        playerInfos[i].name = action.names[i];
-      }
+      gameStarted(action);
       break;
     case 'end_game':
-      gameEnded = true;
+      gameEnded();
       break;
-    case 'start_kyoku': {
-      currentKyokuId += 1;
-      kyoku = {
-        actions: [],
-        bakaze: action.bakaze,
-        kyokuNum: action.kyoku,
-        honba: action.honba,
-      };
-      kyokus.push(kyoku);
-      const prevBoard = board;
-      board = {
-        players: [{}, {}, {}, {}],
-        doraMarkers: [action.dora_marker],
-      };
-      initPlayers(board);
-      for (let i = 0; i < 4; i += 1) {
-        board.players[i].tehais = action.tehais[i];
-        if (prevBoard) {
-          board.players[i].score = prevBoard.players[i].score;
-        } else {
-          board.players[i].score = 25000;
-        }
-      }
-      break;
-    }
-    case 'end_kyoku':
+    case 'start_kyoku':
+      kyokuStarted(action);
       break;
     case 'tsumo':
-      actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);
+      tileDrawn(action);
       break;
     case 'dahai':
-      deleteTehai(actorPlayer, action.pai);
-      actorPlayer.ho = actorPlayer.ho.concat([action.pai]);
+      tileDiscarded(action);
       break;
     case 'reach':
       actorPlayer.reachHoIndex = actorPlayer.ho.length;
@@ -267,31 +325,19 @@ const loadAction = function (action) {
       }
       break;
     }
-    case 'hora':
-    case 'ryukyoku':
-      break;
     case 'dora':
       board.doraMarkers = board.doraMarkers.concat([action.dora_marker]);
       break;
+    case 'end_kyoku':
+    case 'hora':
+    case 'ryukyoku':
     case 'error':
       break;
     default:
       throw new Error(`unknown action: ${action.type}`);
   }
-  if (action.scores) {
-    for (let i = 0; i < 4; i += 1) {
-      board.players[i].score = action.scores[i];
-    }
-  }
-  if (kyoku) {
-    for (let i = 0; i < 4; i += 1) {
-      if (action.actor !== undefined && i !== action.actor) {
-        ripai(board.players[i]);
-      }
-    }
-    action.board = board;
-    return kyoku.actions.push(action);
-  }
+  updateScores(action);
+  updateBoard(action);
 };
 
 const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
@@ -338,10 +384,6 @@ const renderHo = function (player, offset, pais, view) {
   return results;
 };
 
-const getCurrentKyoku = function () {
-  return kyokus[currentKyokuId];
-};
-
 const renderAction = function (action) {
   console.log(action);
   const displayAction = {};
@@ -351,19 +393,19 @@ const renderAction = function (action) {
     }
   });
   $('#action-label').text(JSON.stringify(displayAction));
-  $('#log-label').text((action.logs && action.logs[currentViewpoint]) || '');
+  $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
   const kyoku = getCurrentKyoku();
   for (let i = 0; i < 4; i += 1) {
     const player = action.board.players[i];
-    const view = Dytem.players.at((i - currentViewpoint + 4) % 4);
+    const view = Dytem.players.at((i - CurrentViewpoint + 4) % 4);
     const infoView = Dytem.playerInfos.at(i);
     infoView.score.text(player.score);
-    infoView.viewpoint.text(i === currentViewpoint ? '+' : '');
+    infoView.viewpoint.text(i === CurrentViewpoint ? '+' : '');
     if (!player.tehais) {
       renderPais([], view.tehais);
       view.tsumoPai.hide();
     } else if (player.tehais.length % 3 === 2) {
-      const myHais = i === myPlayerId;
+      const myHais = i === MyPlayerId;
       const maxTehaiId = player.tehais.length - 1;
       renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
       view.tsumoPai.show();
@@ -421,7 +463,7 @@ const initPlayerInfo = async function () {
     }
     const playerInfoView = Dytem.playerInfos.append();
     playerInfoView.index.text(i);
-    playerInfoView.name.text(playerInfos[i].name);
+    playerInfoView.name.text(PlayersInfo[i].name);
   }
 };
 
@@ -450,39 +492,39 @@ const startGame = async function () {
     } else if (msg.type === 'error') {
       socket.close();
     } else if (msg.type === 'start_game') {
-      myPlayerId = msg.id;
+      MyPlayerId = msg.id;
       // names = msg.names;
       socket.send(JSON.stringify({ type: 'none' }));
       initPlayerInfo();
     } else {
       loadAction(msg);
-      if (currentKyokuId >= 0) {
+      if (CurrentKyokuId >= 0) {
         renderAction(msg);
       }
       if (msg.type === 'start_kyoku') {
         socket.send(JSON.stringify({ type: 'none' }));
       } else if (msg.type === 'tsumo') {
-        if (msg.actor === myPlayerId) {
-          haiIndex = -1;
-          waitingDahai = true;
-          while (haiIndex < 0) {
+        if (msg.actor === MyPlayerId) {
+          TileIndex = -1;
+          WaitingDahai = true;
+          while (TileIndex < 0) {
             await sleep(200);
           }
-          waitingDahai = false;
+          WaitingDahai = false;
           const { tehais } = msg;
           const tehaiLength = tehais.length;
           let dahai = null;
-          if (haiIndex < tehaiLength) {
-            dahai = tehais[haiIndex];
+          if (TileIndex < tehaiLength) {
+            dahai = tehais[TileIndex];
             console.log(`dahai ${dahai}`);
           } else {
-            console.error(`pai index ${haiIndex} is out of ${tehais}`);
+            console.error(`pai index ${TileIndex} is out of ${tehais}`);
           }
           socket.send(JSON.stringify({
             type: 'dahai',
-            actor: myPlayerId,
+            actor: MyPlayerId,
             pai: dahai,
-            tsumogiri: haiIndex === (tehaiLength - 1),
+            tsumogiri: TileIndex === (tehaiLength - 1),
           }));
         } else {
           socket.send(JSON.stringify({ type: 'none' }));
@@ -504,8 +546,8 @@ const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 
 $('img.mypai').on('click', function dahai() {
   console.log('clicked!', $(this));
-  if (waitingDahai) {
-    haiIndex = $(this).index;
-    waitingDahai = false;
+  if (WaitingDahai) {
+    TileIndex = $(this).index;
+    WaitingDahai = false;
   }
 });
