@@ -337,14 +337,30 @@ const getCurrentKyoku = function () {
 
 const renderAction = function (action) {
   console.log(action);
-  const displayAction = {};
+  // const displayAction = {};
+  const actionList = document.querySelector('#action-elements');
+  actionList.innerHTML = '';
   Object.keys(action).forEach((k) => {
     if (k !== 'board' && k !== 'logs') {
-      displayAction[k] = action[k];
+      // displayAction[k] = action[k];
+      const termItem = document.createElement('dt');
+      termItem.appendChild(document.createTextNode(k));
+      const descItem = document.createElement('dd');
+      descItem.appendChild(document.createTextNode(JSON.stringify(action[k])));
+      actionList.appendChild(termItem);
+      actionList.appendChild(descItem);
     }
   });
-  $('#action-label').text(JSON.stringify(displayAction));
-  $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
+  if (action.logs) {
+    const termItem = document.createElement('dt');
+    termItem.appendChild(document.createTextNode('logs'));
+    const descItem = document.createElement('dd');
+    descItem.appendChild(document.createTextNode(action.logs));
+    actionList.appendChild(termItem);
+    actionList.appendChild(descItem);
+  }
+  // $('#action-label').text(JSON.stringify(displayAction));
+  // $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
   const kyoku = getCurrentKyoku();
   for (let i = 0; i < 4; i += 1) {
     const player = action.board.players[i];
