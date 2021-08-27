@@ -35,6 +35,7 @@
   top: 350px;
   -webkit-transform: rotate(0deg);
   transform: rotate(0deg);
+  z-index: 999;
 }
 
 .player-1 {
