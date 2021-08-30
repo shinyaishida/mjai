@@ -173,10 +173,6 @@ function gameStarted(action) {
   }
 }
 
-function kyokuStarted(action, board) {
-
-}
-
 const loadAction = function (action) {
   console.log(action);
   let board = null;
@@ -297,8 +293,15 @@ const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
   }
   view.attr('src', paiToImageUrl(pai, pose));
   view.attr('index', index);
-  if (mypai) {
+  if (mypai && !view.hasClass('mypai')) {
     view.addClass('mypai');
+    view.on('click', function dahai() {
+      console.log('clicked!', $(this));
+      if (WaitingDiscard) {
+        TileIndex = parseInt($(this).attr('index'), 10);
+        WaitingDiscard = false;
+      }
+    });
   }
   switch (pose) {
     case 1:
@@ -489,7 +492,8 @@ const joinGame = async function () {
               await sleep(200);
             }
             WaitingDiscard = false;
-            const { tehais } = msg;
+            const { actions } = getCurrentKyoku();
+            const { tehais } = actions[actions.length - 1].board.players[MyPlayerId];
             const tehaiLength = tehais.length;
             let dahai = null;
             if (TileIndex < tehaiLength) {
@@ -530,11 +534,3 @@ const joinGame = async function () {
 };
 
 const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
-
-$('img.mypai').on('click', function dahai() {
-  console.log('clicked!', $(this));
-  if (WaitingDiscard) {
-    TileIndex = $(this).index;
-    WaitingDiscard = false;
-  }
-});
