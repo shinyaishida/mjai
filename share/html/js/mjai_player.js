@@ -520,7 +520,7 @@ const joinGame = async function () {
             socket.send(JSON.stringify({
               type: 'hora',
               actor: MyPlayerId,
-              target: action.actor,
+              target: msg.actor,
               pai: action.pai,
             }));
           }
