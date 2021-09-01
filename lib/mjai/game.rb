@@ -1,5 +1,6 @@
 # frozen_string_literal: false
 
+require 'mjai/logger'
 require 'mjai/action'
 require 'mjai/pai'
 require 'mjai/furo'
@@ -29,7 +30,7 @@ module Mjai
     def players=(players)
       @players = players
       @players.each do |player|
-        puts player.class
+        Mjai::LOGGER.debug(player.class)
         player.game = self
       end
     end
@@ -246,7 +247,7 @@ module Mjai
               'tsumogiri is false but the pai is not in tehais.'
             )
           end
-        else  # after furo
+        else # after furo
           validate(
             !response.tsumogiri,
             'tsumogiri must be false on dahai after furo.'
@@ -364,30 +365,31 @@ module Mjai
       (4 + player1.id - player2.id) % 4
     end
 
-    def dump_action(action, io = $stdout)
-      io.puts(action.to_json)
-      io.print(render_board)
+    def dump_action(action, _io = $stdout)
+      # io.puts(action.to_json)
+      Mjai::LOGGER.debug("action: #{action.to_json}")
+      # io.print(render_board)
+      render_board
     end
 
     def render_board
-      result = ''
-      result << "#{@bakaze}-#{@kyoku_num} kyoku #{@honba} honba  " if @bakaze && @kyoku_num && @honba
+      result = "#{@bakaze}-#{@kyoku_num} kyoku #{@honba} honba  " if @bakaze && @kyoku_num && @honba
       result << "pipai: #{num_pipais}  " if num_pipais
       result << "dora_marker: #{@dora_markers.join(' ')}  " if @dora_markers
-      result << "\n"
+      Mjai::LOGGER.debug(result)
       @players.each_with_index do |player, i|
         next unless player.tehais
 
-        result << "#{player == @actor ? '*' : ' '}#{player == @oya ? '{' : '['}#{i}#{player == @oya ? '}' : ']'} tehai: #{Pai.dump_pais(player.tehais)} #{player.furos.join(' ')}\n"
+        actor_mark = player == @actor ? '>' : ' '
+        oya_mark = player == @oya ? '*' : ' '
+        Mjai::LOGGER.debug("#{actor_mark} #{oya_mark}#{i} tehai: #{Pai.dump_pais(player.tehais)} #{player.furos.join(' ')}")
         ho_str = if player.reach_ho_index
                    "#{Pai.dump_pais(player.ho[0...player.reach_ho_index])}=#{Pai.dump_pais(player.ho[player.reach_ho_index..])}"
                  else
                    Pai.dump_pais(player.ho)
                  end
-        result << "     ho:    #{ho_str}\n"
+        Mjai::LOGGER.debug("     ho:    #{ho_str}")
       end
-      result << ('-' * 80) << "\n"
-      result
     end
   end
 end

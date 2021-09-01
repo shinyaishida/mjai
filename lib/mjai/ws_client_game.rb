@@ -6,7 +6,7 @@ require 'rubygems'
 require 'json'
 require 'faye/websocket'
 require 'eventmachine'
-
+require 'mjai/logger'
 require 'mjai/game'
 require 'mjai/action'
 require 'mjai/puppet_player'
@@ -32,7 +32,7 @@ module Mjai
       @ws = Faye::WebSocket::Client.new(@server)
       @ws.on :open do |_event|
         @connected = true
-        p [:open]
+        Mjai::LOGGER.info("Connected to #{@server}")
         @ws.send(JSON.dump({
                              type: 'join',
                              name: @params[:name],
@@ -42,10 +42,10 @@ module Mjai
 
       @ws.on :close do |event|
         if @connected
-          p [:close, event.code, event.reason]
+          Mjai::LOGGER.info("Disconnected (#{event.code}, #{event.reason})")
           @connected = false
         else
-          puts "connecting to #{@server}"
+          Mjai::LOGGER.info("Connectiong to #{@server}")
         end
         @ws = nil
         EM.stop_event_loop
@@ -53,7 +53,7 @@ module Mjai
 
       @ws.on :message do |event|
         action_json = event.data
-        puts(action_json)
+        Mjai::LOGGER.debug("action: #{action_json}")
         msg = JSON.parse(action_json, symbolize_names: true)
         case msg[:type]
         when 'hello'
@@ -63,7 +63,7 @@ module Mjai
                                       'room' => @uri.path.slice(%r{^/(.*)$}, 1)
                                     })
         when 'error'
-          puts("ERROR: #{action_json}")
+          Mjai::LOGGER.error(action_json)
           break
         else
           if msg[:type] == 'start_game'
@@ -79,7 +79,7 @@ module Mjai
           response = responses && responses[@my_id]
           response_json = response ? response.to_json : JSON.dump({ 'type' => 'none' })
         end
-        puts("->\t#{response_json}")
+        Mjai::LOGGER.info("->\t#{response_json}")
         @ws.send(response_json)
       end
     end

@@ -508,15 +508,7 @@ const joinGame = async function () {
         } else {
           socket.send(JSON.stringify({ type: 'none' }));
         }
-      } else if (msg.type === 'dahai') {
-        socket.send(JSON.stringify({ type: 'none' }));
-      } else if (msg.type === 'reach') {
-        socket.send(JSON.stringify({ type: 'none' }));
-      } else if (msg.type === 'reach_accepted') {
-        socket.send(JSON.stringify({ type: 'none' }));
-      } else if (msg.type === 'ankan') {
-        socket.send(JSON.stringify({ type: 'none' }));
-      } else if (msg.type === 'dora') {
+      } else {
         socket.send(JSON.stringify({ type: 'none' }));
       }
     }

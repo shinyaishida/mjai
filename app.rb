@@ -27,16 +27,16 @@ end
 server_url = "mjsonp://#{params[:host]}:#{params[:port]}/#{params[:room]}"
 num_players = 4
 
-puts "Listening on host #{params[:host]}, port #{params[:port]}"
-puts "URL:#{server_url}"
-puts "Waiting for #{num_players} players..."
+Mjai::LOGGER.info("Listening on host #{params[:host]}, port #{params[:port]}")
+Mjai::LOGGER.debug("URL:#{server_url}")
+Mjai::LOGGER.info("Waiting for #{num_players} players...")
 
 pids = []
 
 # TCPGameServer#start_default_players()
 params[:player_commands].each do |command|
   command += " #{server_url}"
-  puts(command)
+  Mjai::LOGGER.info(command)
   pids.push(fork { exec(command) })
 end
 
@@ -51,7 +51,6 @@ App = lambda do |env|
             })
 
     ws.on :message do |event|
-      puts("server <- player ?\t#{event.data}")
       msg = JSON.parse(event.data, symbolize_names: true)
       begin
         if msg[:type] == 'join'
@@ -62,18 +61,19 @@ App = lambda do |env|
 
           mutex.synchronize do
             if players.size >= num_players
-              puts('ERROR: The room is busy. Retry after a while.')
+              Mjai::LOGGER.error('The room is busy. Retry after a while.')
               raise(LocalError, 'The room is busy. Retry after a while.')
             end
             player.name = (msg[:name]).to_s
             players.push(player)
+            Mjai::LOGGER.info("Player #{player.name} joined")
             delta = num_players - players.size
-            puts("Waiting for #{delta} more players...")
+            Mjai::LOGGER.info("Waiting for #{delta} more players...")
             if delta.zero?
               Thread.new do
                 # TCPActiveGameServer#play_game()
                 success = start_game(players)
-                puts success
+                Mjai::LOGGER.debug(success)
               end
             end
           end
@@ -81,8 +81,7 @@ App = lambda do |env|
           player.receive(event.data)
         end
       rescue LocalError => e
-        error = e.message
-        puts("ERROR: #{error}")
+        Mjai::LOGGER.error(e.message)
         ws.close
       end
     end
