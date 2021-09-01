@@ -19,8 +19,7 @@ module Mjai
     end
 
     def play_game(players)
-      mjson_path = (format('%s/%s.mjson', params[:log_dir], Time.now.strftime('%Y-%m-%d-%H%M%S')) if params[:log_dir])
-
+      mjson_path = "#{params[:log_dir]}/#{Time.now.strftime('%Y-%m-%d-%H%M%S')}.mjson" if params[:log_dir]
       game = nil
       success = false
       maybe_open(mjson_path, 'w') do |mjson_out|

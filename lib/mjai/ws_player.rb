@@ -2,6 +2,7 @@
 
 require 'timeout'
 
+require 'mjai/logger'
 require 'mjai/player'
 require 'mjai/action'
 require 'mjai/validation_error'
@@ -22,15 +23,15 @@ module Mjai
     end
 
     def respond_to_action(action)
-      puts "server -> player #{id}\t#{action.to_json}"
+      Mjai::LOGGER.info("-> player #{id}\t#{action.to_json}")
       @websocket.send(action.to_json)
       @line = nil
       sleep 0.1 while @line.nil?
       if @line
-        puts "server <- player #{id}\t#{@line}"
+        Mjai::LOGGER.info("<- player #{id}\t#{@line}")
         Action.from_json(@line.chomp, game)
       else
-        puts "server :  Player #{id} has disconnected."
+        Mjai::LOGGER.error("player #{id} has disconnected.")
         Action.new({ type: :none })
       end
     rescue Timeout::Error
