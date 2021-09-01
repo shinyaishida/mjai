@@ -512,6 +512,17 @@ const joinGame = async function () {
         } else {
           socket.send(JSON.stringify({ type: 'none' }));
         }
+      } else if (msg.type === 'dahai' && msg.actor !== MyPlayerId) {
+        msg.possible_actions.forEach((action) => {
+          if (action.type === 'hora') {
+            socket.send(JSON.stringify({
+              type: 'hora',
+              actor: MyPlayerId,
+              target: action.actor,
+              pai: action.pai,
+            }));
+          }
+        });
       } else {
         socket.send(JSON.stringify({ type: 'none' }));
       }
