@@ -492,6 +492,10 @@ const joinGame = async function () {
             }));
           } else {
             for (action of msg.possible_actions) {
+              if (action.type === 'hora') {
+                socket.send(JSON.stringify(action));
+                return;
+              }
               if (action.type === 'reach') {
                 socket.send(JSON.stringify(action));
                 return;
