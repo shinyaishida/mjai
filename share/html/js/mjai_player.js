@@ -486,6 +486,12 @@ const joinGame = async function () {
               tsumogiri: true,
             }));
           } else {
+            for (action of msg.possible_actions) {
+              if (action.type === 'reach') {
+                socket.send(JSON.stringify(action));
+                break;
+              }
+            }
             TileIndex = -1;
             WaitingDiscard = true;
             while (TileIndex < 0) {
