@@ -452,6 +452,7 @@ const joinGame = async function () {
       room: 'default',
     }));
   };
+
   socket.onmessage = async function messageReceived(event) {
     const msg = JSON.parse(event.data);
     if (msg.type === 'hello') {
@@ -489,7 +490,7 @@ const joinGame = async function () {
             for (action of msg.possible_actions) {
               if (action.type === 'reach') {
                 socket.send(JSON.stringify(action));
-                break;
+                return;
               }
             }
             TileIndex = -1;
@@ -534,14 +535,39 @@ const joinGame = async function () {
         if (!called) {
           socket.send(JSON.stringify({ type: 'none' }));
         }
+      } else if (msg.type === 'reach' && msg.actor === MyPlayerId) {
+        TileIndex = -1;
+        WaitingDiscard = true;
+        while (TileIndex < 0) {
+          await sleep(200);
+        }
+        WaitingDiscard = false;
+        const { actions } = getCurrentKyoku();
+        const { tehais } = actions[actions.length - 1].board.players[MyPlayerId];
+        const tehaiLength = tehais.length;
+        let dahai = null;
+        if (TileIndex < tehaiLength) {
+          dahai = tehais[TileIndex];
+          console.log(`dahai ${dahai}`);
+        } else {
+          console.error(`pai index ${TileIndex} is out of ${tehais}`);
+        }
+        socket.send(JSON.stringify({
+          type: 'dahai',
+          actor: MyPlayerId,
+          pai: dahai,
+          tsumogiri: TileIndex === (tehaiLength - 1),
+        }));
       } else {
         socket.send(JSON.stringify({ type: 'none' }));
       }
     }
   };
+
   socket.onclose = function gameClosed(event) {
     console.log(event.data);
   };
+
   socket.onerror = function gameAborted(event) {
     alert(event.data);
   };

@@ -103,7 +103,7 @@ end
 def start_game(players)
   game = Mjai::ActiveGame.new(players)
   #  game.game_type = params[:game_type]
-  game.game_type = :one_kyoku
+  game.game_type = :tonnan
   game.on_action do |action|
     game.dump_action(action)
   end
