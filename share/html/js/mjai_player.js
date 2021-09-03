@@ -287,7 +287,7 @@ const loadAction = function (action) {
   }
 };
 
-const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
+const renderPai = function (pai, view, index, pose = undefined, mypai = false, cannot_dahai = undefined) {
   if (pose === undefined) {
     pose = 1;
   }
@@ -315,13 +315,15 @@ const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
   }
 };
 
-const renderPais = function (pais, view, poses, mypai = false) {
+const renderPais = function (pais, view, poses, mypai = false, cannotDahai = undefined) {
   pais || (pais = []);
   poses || (poses = []);
   view.resize(pais.length);
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    renderPai(pais[i], view.at(i), i, poses[i], mypai);
+    const tile = pais[i];
+    const canDiscard = !cannotDahai || !cannotDahai.includes(tile);
+    renderPai(pais[i], view.at(i), i, poses[i], canDiscard && mypai);
   }
 };
 
@@ -377,9 +379,11 @@ const renderAction = function (action) {
     } else if (player.tehais.length % 3 === 2) {
       const myHais = i === MyPlayerId;
       const maxTehaiId = player.tehais.length - 1;
-      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
+      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais, action.cannot_dahai);
       view.tsumoPai.show();
-      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
+      const tile = player.tehais[maxTehaiId];
+      const canDiscard = !action.cannot_dahai || !action.cannot_dahai.includes(tile);
+      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, canDiscard && myHais);
     } else {
       renderPais(player.tehais, view.tehais);
       view.tsumoPai.hide();
