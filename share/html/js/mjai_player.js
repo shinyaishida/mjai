@@ -287,7 +287,7 @@ const loadAction = function (action) {
   }
 };
 
-const renderPai = function (pai, view, index, pose = undefined, mypai = false, cannot_dahai = undefined) {
+const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
   if (pose === undefined) {
     pose = 1;
   }
@@ -315,15 +315,13 @@ const renderPai = function (pai, view, index, pose = undefined, mypai = false, c
   }
 };
 
-const renderPais = function (pais, view, poses, mypai = false, cannotDahai = undefined) {
+const renderPais = function (pais, view, poses, mypai = false) {
   pais || (pais = []);
   poses || (poses = []);
   view.resize(pais.length);
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    const tile = pais[i];
-    const canDiscard = !cannotDahai || !cannotDahai.includes(tile);
-    renderPai(pais[i], view.at(i), i, poses[i], canDiscard && mypai);
+    renderPai(pais[i], view.at(i), i, poses[i], mypai);
   }
 };
 
@@ -338,6 +336,11 @@ const renderHo = function (player, offset, pais, view) {
 
 const getCurrentKyoku = function () {
   return Kyokus[CurrentKyokuId];
+};
+
+const getCurrentTehais = function () {
+  const { actions } = getCurrentKyoku();
+  return actions[actions.length - 1].board.players[MyPlayerId].tehais;
 };
 
 const renderAction = function (action) {
@@ -379,11 +382,9 @@ const renderAction = function (action) {
     } else if (player.tehais.length % 3 === 2) {
       const myHais = i === MyPlayerId;
       const maxTehaiId = player.tehais.length - 1;
-      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais, action.cannot_dahai);
+      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
       view.tsumoPai.show();
-      const tile = player.tehais[maxTehaiId];
-      const canDiscard = !action.cannot_dahai || !action.cannot_dahai.includes(tile);
-      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, canDiscard && myHais);
+      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
     } else {
       renderPais(player.tehais, view.tehais);
       view.tsumoPai.hide();
@@ -507,8 +508,7 @@ const joinGame = async function () {
               await sleep(200);
             }
             WaitingDiscard = false;
-            const { actions } = getCurrentKyoku();
-            const { tehais } = actions[actions.length - 1].board.players[MyPlayerId];
+            const tehais = getCurrentTehais();
             const tehaiLength = tehais.length;
             let dahai = null;
             if (TileIndex < tehaiLength) {
@@ -548,10 +548,17 @@ const joinGame = async function () {
         WaitingDiscard = true;
         while (TileIndex < 0) {
           await sleep(200);
+          if (TileIndex >= 0) {
+            const clickedTile = getCurrentTehais()[TileIndex];
+            if (msg.cannot_dahai.includes(clickedTile)) {
+              console.log(`cannot discard ${clickedTile} to keep tenpai`);
+              TileIndex = -1;
+              WaitingDiscard = true;
+            }
+          }
         }
         WaitingDiscard = false;
-        const { actions } = getCurrentKyoku();
-        const { tehais } = actions[actions.length - 1].board.players[MyPlayerId];
+        const tehais = getCurrentTehais();
         const tehaiLength = tehais.length;
         let dahai = null;
         if (TileIndex < tehaiLength) {
