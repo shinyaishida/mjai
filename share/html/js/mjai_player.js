@@ -23,48 +23,19 @@ const BAKAZE_TO_STR = {
   N: '北',
 };
 
-let Kyokus = [];
+const Kyokus = [];
 let CurrentKyokuId = -1;
 let CurrentViewpoint = 0;
-let PlayersInfo = [{}, {}, {}, {}];
+const PlayersInfo = [{}, {}, {}, {}];
 // TODO: parse start_game action message to extract the exact player ID.
+let PlayerName = 'kkri-client';
 let MyPlayerId;
+let GameRoom = 'default';
 let TileIndex;
 let WaitingDiscard = false;
 let AutoPlay = false;
 
-const parsePai = function (pai) {
-  if (pai.match(/^([1-9])(.)(r)?$/)) {
-    return {
-      type: RegExp.$2,
-      number: parseInt(RegExp.$1, 10),
-      red: RegExp.$3,
-    };
-  }
-  return {
-    type: 't',
-    number: TSUPAIS.indexOf(pai),
-    red: false,
-  };
-};
-
-const comparePais = function (lhs, rhs) {
-  const parsedLhs = parsePai(lhs);
-  const lhsRep = parsedLhs.type + parsedLhs.number + (parsedLhs.red ? '1' : '0');
-  const parsedRhs = parsePai(rhs);
-  const rhsRep = parsedRhs.type + parsedRhs.number + (parsedRhs.red ? '1' : '0');
-  if (lhsRep < rhsRep) {
-    return -1;
-  }
-  if (lhsRep > rhsRep) {
-    return 1;
-  }
-  return 0;
-};
-
-const sortPais = function (pais) {
-  return pais.sort(comparePais);
-};
+const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 
 const paiToImageUrl = function (pai, pose) {
   let ext;
@@ -151,19 +122,230 @@ const deleteTehai = function (player, pai) {
   return player.tehais[idx];
 };
 
-const ripai = function (player) {
-  if (player.tehais) {
-    player.tehais = (function removeNullTiles() {
-      const results = [];
-      player.tehais.forEach((pai) => {
-        if (pai) {
-          results.push(pai);
-        }
-      });
-      return results;
-    }());
-    return sortPais(player.tehais);
+const parsePai = function (pai) {
+  if (pai.match(/^([1-9])(.)(r)?$/)) {
+    return {
+      type: RegExp.$2,
+      number: parseInt(RegExp.$1, 10),
+      red: RegExp.$3,
+    };
   }
+  return {
+    type: 't',
+    number: TSUPAIS.indexOf(pai),
+    red: false,
+  };
+};
+
+const comparePais = function (lhs, rhs) {
+  const parsedLhs = parsePai(lhs);
+  const lhsRep = parsedLhs.type + parsedLhs.number + (parsedLhs.red ? '1' : '0');
+  const parsedRhs = parsePai(rhs);
+  const rhsRep = parsedRhs.type + parsedRhs.number + (parsedRhs.red ? '1' : '0');
+  if (lhsRep < rhsRep) {
+    return -1;
+  }
+  if (lhsRep > rhsRep) {
+    return 1;
+  }
+  return 0;
+};
+
+const ripai = function (player) {
+  if (!player.tehais) return;
+
+  player.tehais = (function removeNullTiles() {
+    const results = [];
+    player.tehais.forEach((pai) => {
+      if (pai) {
+        results.push(pai);
+      }
+    });
+    return results;
+  }());
+  player.tehais.sort(comparePais);
+};
+
+const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
+  if (pose === undefined) {
+    pose = 1;
+  }
+  view.attr('src', paiToImageUrl(pai, pose));
+  view.attr('index', index);
+  if (mypai && !view.hasClass('mypai')) {
+    view.addClass('mypai');
+    view.on('click', function dahai() {
+      console.log('clicked!', $(this));
+      if (WaitingDiscard) {
+        TileIndex = parseInt($(this).attr('index'), 10);
+        WaitingDiscard = false;
+      }
+    });
+  }
+  switch (pose) {
+    case 1:
+      view.addClass('pai');
+      return view.removeClass('laid-pai');
+    case 3:
+      view.addClass('laid-pai');
+      return view.removeClass('pai');
+    default:
+      throw new Error('unknown pose');
+  }
+};
+
+const renderPais = function (pais, view, poses, mypai = false) {
+  pais || (pais = []);
+  poses || (poses = []);
+  view.resize(pais.length);
+  const ref = pais.length;
+  for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
+    renderPai(pais[i], view.at(i), i, poses[i], mypai);
+  }
+};
+
+const renderHo = function (player, offset, pais, view) {
+  const reachIndex = (player.reachHoIndex === null) ? null : player.reachHoIndex - offset;
+  view.resize(pais.length);
+  const ref = pais.length;
+  for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
+    renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1);
+  }
+};
+
+const getCurrentKyoku = function () {
+  return Kyokus[CurrentKyokuId];
+};
+
+const getCurrentTehais = function () {
+  const { actions } = getCurrentKyoku();
+  return actions[actions.length - 1].board.players[MyPlayerId].tehais;
+};
+
+function getClickedTile() {
+  const tehais = getCurrentTehais();
+  const tehaiLength = tehais.length;
+  let dahai = null;
+  if (TileIndex < tehaiLength) {
+    dahai = tehais[TileIndex];
+  } else {
+    console.error(`pai index ${TileIndex} is out of ${tehais}`);
+  }
+  return dahai;
+}
+
+function discardedDrawnTile() {
+  return TileIndex === (getCurrentTehais().length - 1);
+}
+
+function renderActionLog(action) {
+  // const displayAction = {};
+  const actionList = document.querySelector('#action-elements');
+  actionList.innerHTML = '';
+  Object.keys(action).forEach((k) => {
+    if (k !== 'board' && k !== 'logs') {
+      // displayAction[k] = action[k];
+      const termItem = document.createElement('dt');
+      termItem.appendChild(document.createTextNode(k));
+      const descItem = document.createElement('dd');
+      descItem.appendChild(document.createTextNode(JSON.stringify(action[k])));
+      actionList.appendChild(termItem);
+      actionList.appendChild(descItem);
+    }
+  });
+  if (action.logs) {
+    const termItem = document.createElement('dt');
+    termItem.appendChild(document.createTextNode('logs'));
+    const descItem = document.createElement('dd');
+    descItem.appendChild(document.createTextNode(action.logs));
+    actionList.appendChild(termItem);
+    actionList.appendChild(descItem);
+  }
+  // $('#action-label').text(JSON.stringify(displayAction));
+  // $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
+}
+
+function renderPlayerInfo(player, playerId) {
+  const infoView = window.Dytem.playerInfos.at(playerId);
+  infoView.score.text(player.score);
+  infoView.viewpoint.text(playerId === CurrentViewpoint ? '+' : '');
+}
+
+function renderPlayerTehais(view, player, playerId) {
+  if (!player.tehais) {
+    renderPais([], view.tehais);
+    view.tsumoPai.hide();
+  } else if (player.tehais.length % 3 === 2) {
+    const myHais = playerId === MyPlayerId;
+    const maxTehaiId = player.tehais.length - 1;
+    renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
+    view.tsumoPai.show();
+    renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
+  } else {
+    renderPais(player.tehais, view.tehais);
+    view.tsumoPai.hide();
+  }
+}
+
+function renderPlayerHo(view, player) {
+  const ho = player.ho || [];
+  renderHo(player, 0, ho.slice(0, 6), view.hoRows.at(0).pais);
+  renderHo(player, 6, ho.slice(6, 12), view.hoRows.at(1).pais);
+  renderHo(player, 12, ho.slice(12), view.hoRows.at(2).pais);
+}
+
+function renderPlayerFuro(view, player, playerId) {
+  view.furos.resize(player.furos.length);
+  if (player.furos) {
+    let j = player.furos.length - 1;
+    let pais;
+    let poses;
+    while (j >= 0) {
+      const furo = player.furos[j];
+      const furoView = view.furos.at(player.furos.length - 1 - j);
+      if (furo.type === 'ankan') {
+        pais = ['?'].concat(furo.consumed.slice(0, 2)).concat(['?']);
+        poses = [1, 1, 1, 1];
+      } else {
+        const dir = (4 + furo.target - playerId) % 4;
+        const laidPos = (furo.type === 'daiminkan' || furo.type === 'kakan')
+          ? [null, 3, 1, 0][dir] : [null, 2, 1, 0][dir];
+        pais = furo.consumed.concat([]);
+        poses = [1, 1, 1];
+        [].splice.apply(pais, [laidPos, laidPos - laidPos].concat([furo.taken]));
+        [].splice.apply(poses, [laidPos, laidPos - laidPos].concat([3]));
+      }
+      renderPais(pais, furoView.pais, poses);
+      j -= 1;
+    }
+  }
+}
+
+function renderPlayerBoard(player, playerId) {
+  const view = window.Dytem.players.at((playerId - CurrentViewpoint + 4) % 4);
+  renderPlayerInfo(player, playerId);
+  renderPlayerTehais(view, player, playerId);
+  renderPlayerHo(view, player);
+  renderPlayerFuro(view, player, playerId);
+}
+
+function renderWanpais(action) {
+  const wanpais = ['?', '?', '?', '?', '?', '?'];
+  const ref3 = action.board.doraMarkers.length;
+  for (let i = 0; ref3 >= 0 ? i < ref3 : i > ref3; i += ref3 >= 0 ? 1 : -1) {
+    wanpais[i + 2] = action.board.doraMarkers[i];
+  }
+  renderPais(wanpais, window.Dytem.wanpais);
+}
+
+const renderAction = function (action) {
+  console.log(action);
+  renderActionLog(action);
+  for (let i = 0; i < 4; i += 1) {
+    const player = action.board.players[i];
+    renderPlayerBoard(player, i);
+  }
+  renderWanpais(action);
 };
 
 function gameStarted(action) {
@@ -285,145 +467,9 @@ const loadAction = function (action) {
     action.board = board;
     kyoku.actions.push(action);
   }
-};
-
-const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
-  if (pose === undefined) {
-    pose = 1;
+  if (CurrentKyokuId >= 0) {
+    renderAction(action);
   }
-  view.attr('src', paiToImageUrl(pai, pose));
-  view.attr('index', index);
-  if (mypai && !view.hasClass('mypai')) {
-    view.addClass('mypai');
-    view.on('click', function dahai() {
-      console.log('clicked!', $(this));
-      if (WaitingDiscard) {
-        TileIndex = parseInt($(this).attr('index'), 10);
-        WaitingDiscard = false;
-      }
-    });
-  }
-  switch (pose) {
-    case 1:
-      view.addClass('pai');
-      return view.removeClass('laid-pai');
-    case 3:
-      view.addClass('laid-pai');
-      return view.removeClass('pai');
-    default:
-      throw new Error('unknown pose');
-  }
-};
-
-const renderPais = function (pais, view, poses, mypai = false) {
-  pais || (pais = []);
-  poses || (poses = []);
-  view.resize(pais.length);
-  const ref = pais.length;
-  for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    renderPai(pais[i], view.at(i), i, poses[i], mypai);
-  }
-};
-
-const renderHo = function (player, offset, pais, view) {
-  const reachIndex = (player.reachHoIndex === null) ? null : player.reachHoIndex - offset;
-  view.resize(pais.length);
-  const ref = pais.length;
-  for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1);
-  }
-};
-
-const getCurrentKyoku = function () {
-  return Kyokus[CurrentKyokuId];
-};
-
-const getCurrentTehais = function () {
-  const { actions } = getCurrentKyoku();
-  return actions[actions.length - 1].board.players[MyPlayerId].tehais;
-};
-
-const renderAction = function (action) {
-  console.log(action);
-  // const displayAction = {};
-  const actionList = document.querySelector('#action-elements');
-  actionList.innerHTML = '';
-  Object.keys(action).forEach((k) => {
-    if (k !== 'board' && k !== 'logs') {
-      // displayAction[k] = action[k];
-      const termItem = document.createElement('dt');
-      termItem.appendChild(document.createTextNode(k));
-      const descItem = document.createElement('dd');
-      descItem.appendChild(document.createTextNode(JSON.stringify(action[k])));
-      actionList.appendChild(termItem);
-      actionList.appendChild(descItem);
-    }
-  });
-  if (action.logs) {
-    const termItem = document.createElement('dt');
-    termItem.appendChild(document.createTextNode('logs'));
-    const descItem = document.createElement('dd');
-    descItem.appendChild(document.createTextNode(action.logs));
-    actionList.appendChild(termItem);
-    actionList.appendChild(descItem);
-  }
-  // $('#action-label').text(JSON.stringify(displayAction));
-  // $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
-  const kyoku = getCurrentKyoku();
-  for (let i = 0; i < 4; i += 1) {
-    const player = action.board.players[i];
-    const view = window.Dytem.players.at((i - CurrentViewpoint + 4) % 4);
-    const infoView = window.Dytem.playerInfos.at(i);
-    infoView.score.text(player.score);
-    infoView.viewpoint.text(i === CurrentViewpoint ? '+' : '');
-    if (!player.tehais) {
-      renderPais([], view.tehais);
-      view.tsumoPai.hide();
-    } else if (player.tehais.length % 3 === 2) {
-      const myHais = i === MyPlayerId;
-      const maxTehaiId = player.tehais.length - 1;
-      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
-      view.tsumoPai.show();
-      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
-    } else {
-      renderPais(player.tehais, view.tehais);
-      view.tsumoPai.hide();
-    }
-    const ho = player.ho || [];
-    renderHo(player, 0, ho.slice(0, 6), view.hoRows.at(0).pais);
-    renderHo(player, 6, ho.slice(6, 12), view.hoRows.at(1).pais);
-    renderHo(player, 12, ho.slice(12), view.hoRows.at(2).pais);
-    view.furos.resize(player.furos.length);
-    if (player.furos) {
-      let j = player.furos.length - 1;
-      let pais;
-      let poses;
-      while (j >= 0) {
-        const furo = player.furos[j];
-        const furoView = view.furos.at(player.furos.length - 1 - j);
-        if (furo.type === 'ankan') {
-          pais = ['?'].concat(furo.consumed.slice(0, 2)).concat(['?']);
-          poses = [1, 1, 1, 1];
-        } else {
-          const dir = (4 + furo.target - i) % 4;
-          const laidPos = (furo.type === 'daiminkan' || furo.type === 'kakan')
-            ? [null, 3, 1, 0][dir] : [null, 2, 1, 0][dir];
-          pais = furo.consumed.concat([]);
-          poses = [1, 1, 1];
-          [].splice.apply(pais, [laidPos, laidPos - laidPos].concat([furo.taken]));
-          [].splice.apply(poses, [laidPos, laidPos - laidPos].concat([3]));
-        }
-        renderPais(pais, furoView.pais, poses);
-        j -= 1;
-      }
-    }
-  }
-  const wanpais = ['?', '?', '?', '?', '?', '?'];
-  const ref3 = action.board.doraMarkers.length;
-  for (let i = 0; ref3 >= 0 ? i < ref3 : i > ref3; i += ref3 >= 0 ? 1 : -1) {
-    wanpais[i + 2] = action.board.doraMarkers[i];
-  }
-  renderPais(wanpais, window.Dytem.wanpais);
 };
 
 const initPlayerInfo = async function () {
@@ -442,158 +488,229 @@ const initPlayerInfo = async function () {
   }
 };
 
-const joinGame = async function () {
+function joinGameOnSocketOpen(socket, serverName, serverPort) {
+  socket.onopen = function serverConnected(event) {
+    console.log(`Connected to server ${serverName}:${serverPort}`);
+    console.log(`Autoplay: ${AutoPlay}`);
+    socket.send(JSON.stringify({
+      type: 'join',
+      name: PlayerName,
+      room: GameRoom,
+    }));
+  };
+}
+
+function joinGame(socket, playerName, gameRoom) {
+  socket.send(JSON.stringify({
+    type: 'join',
+    name: playerName,
+    room: gameRoom,
+  }));
+}
+
+function initGame(socket, action) {
+  MyPlayerId = action.id;
+  CurrentKyokuId = -1;
+  console.log(action);
+  // names = action.names;
+  loadAction(action);
+  socket.send(JSON.stringify({ type: 'none' }));
+  initPlayerInfo();
+}
+
+function handleError(socket, action) {
+  socket.close();
+}
+
+function replyNone(socket) {
+  socket.send(JSON.stringify({ type: 'none' }));
+}
+
+function myAction(action) {
+  return action.actor === MyPlayerId;
+}
+
+function discardTileAutomatically(socket, action) {
+  socket.send(JSON.stringify({
+    type: 'dahai',
+    actor: MyPlayerId,
+    pai: action.pai,
+    tsumogiri: true,
+  }));
+}
+
+async function takePossibleActionToDrawnTile(socket, action) {
+  let done = false;
+  action.possible_actions.forEach((pa) => {
+    if (!done) {
+      switch (pa.type) {
+        case 'hora':
+        case 'reach':
+          socket.send(JSON.stringify(pa));
+          done = true;
+          break;
+        default:
+      }
+    }
+  });
+  if (!done) {
+    WaitingDiscard = true;
+    TileIndex = -1;
+    while (TileIndex < 0) {
+      await sleep(200);
+    }
+    WaitingDiscard = false;
+    socket.send(JSON.stringify({
+      type: 'dahai',
+      actor: MyPlayerId,
+      pai: getClickedTile(),
+      tsumogiri: discardedDrawnTile(),
+    }));
+  }
+}
+
+async function takeActionOnTileDrawn(socket, action) {
+  if (myAction(action)) {
+    if (AutoPlay) {
+      discardTileAutomatically(socket, action);
+    } else {
+      takePossibleActionToDrawnTile(socket, action);
+    }
+  } else {
+    replyNone(socket);
+  }
+}
+
+function takePossibleActionToDiscardedTile(socket, action) {
+  let called = false;
+  action.possible_actions.forEach((pa) => {
+    if (!called && pa.type === 'hora') {
+      called = true;
+      socket.send(JSON.stringify(pa));
+    }
+  });
+  if (!called) {
+    replyNone(socket);
+  }
+}
+
+function takeActionOnTileDiscarded(socket, action) {
+  if (myAction(action)) {
+    replyNone(socket);
+  } else {
+    takePossibleActionToDiscardedTile(socket, action);
+  }
+}
+
+async function discardTileOnRiichi(socket, action) {
+  TileIndex = -1;
+  WaitingDiscard = true;
+  while (TileIndex < 0) {
+    await sleep(200);
+    if (TileIndex >= 0) {
+      const clickedTile = getCurrentTehais()[TileIndex];
+      if (action.cannot_dahai.includes(clickedTile)) {
+        console.log(`cannot discard ${clickedTile} to keep tenpai`);
+        TileIndex = -1;
+        WaitingDiscard = true;
+      }
+    }
+  }
+  WaitingDiscard = false;
+  const dahai = getClickedTile();
+  socket.send(JSON.stringify({
+    type: 'dahai',
+    actor: MyPlayerId,
+    pai: dahai,
+    tsumogiri: discardedDrawnTile(),
+  }));
+}
+
+function takeActionOnRiichiCalled(socket, action) {
+  if (myAction(action)) {
+    discardTileOnRiichi(socket, action);
+  } else {
+    replyNone(socket);
+  }
+}
+
+async function acknowledgeResult(socket) {
+  WaitingDiscard = true;
+  TileIndex = -1;
+  while (TileIndex < 0) {
+    await sleep(200);
+  }
+  WaitingDiscard = false;
+  replyNone(socket);
+}
+
+function playGame(socket, action) {
+  loadAction(action);
+  switch (action.type) {
+    case 'tsumo':
+      takeActionOnTileDrawn(socket, action);
+      break;
+    case 'dahai':
+      takeActionOnTileDiscarded(socket, action);
+      break;
+    case 'reach':
+      takeActionOnRiichiCalled(socket, action);
+      break;
+    case 'hora':
+    case 'ryukyoku':
+      acknowledgeResult(socket);
+      break;
+    default:
+      replyNone(socket);
+  }
+}
+
+function setActionsOnMessage(socket) {
+  socket.onmessage = async function messageReceived(event) {
+    const action = JSON.parse(event.data);
+    switch (action.type) {
+      case 'hello':
+        joinGame(socket, PlayerName, GameRoom);
+        break;
+      case 'start_game':
+        initGame(socket, action);
+        break;
+      case 'error':
+        handleError(socket, action);
+        break;
+      default:
+        playGame(socket, action);
+    }
+  };
+}
+
+function quitGameOnSocketClose(socket) {
+  socket.onclose = function gameClosed(event) {
+    console.log(event.data);
+  };
+}
+
+function abortGameOnSocketError(socket) {
+  socket.onerror = function gameAborted(event) {
+    alert(event.data);
+  };
+}
+
+function initWebSocket(socket, serverName, serverPort) {
+  joinGameOnSocketOpen(socket, serverName, serverPort);
+  setActionsOnMessage(socket);
+  quitGameOnSocketClose(socket);
+  abortGameOnSocketError(socket);
+}
+
+const startGame = async function () {
   console.log('Connecting');
   const serverName = '127.0.0.1';
   const serverPort = 9292;
   const socket = new WebSocket(`ws://${serverName}:${serverPort}`);
-  socket.onopen = function serverConnected(event) {
-    console.log(`Connected to server ${serverName}:${serverPort}`);
-    AutoPlay = document.querySelector('#autoplay').checked;
-    console.log(`Autoplay: ${AutoPlay}`);
-    socket.send(JSON.stringify({
-      type: 'join',
-      name: 'kkri-client',
-      room: 'default',
-    }));
-  };
-
-  socket.onmessage = async function messageReceived(event) {
-    const msg = JSON.parse(event.data);
-    if (msg.type === 'hello') {
-      socket.send(JSON.stringify({
-        type: 'join',
-        name: 'kkri-client',
-        room: 'default',
-      }));
-    } else if (msg.type === 'error') {
-      socket.close();
-    } else if (msg.type === 'start_game') {
-      MyPlayerId = msg.id;
-      console.log(msg);
-      // names = msg.names;
-      loadAction(msg);
-      socket.send(JSON.stringify({ type: 'none' }));
-      initPlayerInfo();
-    } else {
-      loadAction(msg);
-      if (CurrentKyokuId >= 0) {
-        renderAction(msg);
-      }
-      if (msg.type === 'start_kyoku') {
-        socket.send(JSON.stringify({ type: 'none' }));
-      } else if (msg.type === 'tsumo') {
-        if (msg.actor === MyPlayerId) {
-          if (AutoPlay) {
-            socket.send(JSON.stringify({
-              type: 'dahai',
-              actor: MyPlayerId,
-              pai: msg.pai,
-              tsumogiri: true,
-            }));
-          } else {
-            for (action of msg.possible_actions) {
-              if (action.type === 'hora') {
-                socket.send(JSON.stringify(action));
-                return;
-              }
-              if (action.type === 'reach') {
-                socket.send(JSON.stringify(action));
-                return;
-              }
-            }
-            TileIndex = -1;
-            WaitingDiscard = true;
-            while (TileIndex < 0) {
-              await sleep(200);
-            }
-            WaitingDiscard = false;
-            const tehais = getCurrentTehais();
-            const tehaiLength = tehais.length;
-            let dahai = null;
-            if (TileIndex < tehaiLength) {
-              dahai = tehais[TileIndex];
-              console.log(`dahai ${dahai}`);
-            } else {
-              console.error(`pai index ${TileIndex} is out of ${tehais}`);
-            }
-            socket.send(JSON.stringify({
-              type: 'dahai',
-              actor: MyPlayerId,
-              pai: dahai,
-              tsumogiri: TileIndex === (tehaiLength - 1),
-            }));
-          }
-        } else {
-          socket.send(JSON.stringify({ type: 'none' }));
-        }
-      } else if (msg.type === 'dahai' && msg.actor !== MyPlayerId) {
-        let called = false;
-        msg.possible_actions.forEach((action) => {
-          if (!called && action.type === 'hora') {
-            called = true;
-            socket.send(JSON.stringify({
-              type: 'hora',
-              actor: MyPlayerId,
-              target: msg.actor,
-              pai: action.pai,
-            }));
-          }
-        });
-        if (!called) {
-          socket.send(JSON.stringify({ type: 'none' }));
-        }
-      } else if (msg.type === 'reach' && msg.actor === MyPlayerId) {
-        TileIndex = -1;
-        WaitingDiscard = true;
-        while (TileIndex < 0) {
-          await sleep(200);
-          if (TileIndex >= 0) {
-            const clickedTile = getCurrentTehais()[TileIndex];
-            if (msg.cannot_dahai.includes(clickedTile)) {
-              console.log(`cannot discard ${clickedTile} to keep tenpai`);
-              TileIndex = -1;
-              WaitingDiscard = true;
-            }
-          }
-        }
-        WaitingDiscard = false;
-        const tehais = getCurrentTehais();
-        const tehaiLength = tehais.length;
-        let dahai = null;
-        if (TileIndex < tehaiLength) {
-          dahai = tehais[TileIndex];
-          console.log(`dahai ${dahai}`);
-        } else {
-          console.error(`pai index ${TileIndex} is out of ${tehais}`);
-        }
-        socket.send(JSON.stringify({
-          type: 'dahai',
-          actor: MyPlayerId,
-          pai: dahai,
-          tsumogiri: TileIndex === (tehaiLength - 1),
-        }));
-      } else {
-        if (msg.type === 'hora' || msg.type === 'ryukyoku') {
-          WaitingDiscard = true;
-          TileIndex = -1;
-          while (TileIndex < 0) {
-            await sleep(200);
-          }
-          WaitingDiscard = false;
-        }
-        socket.send(JSON.stringify({ type: 'none' }));
-      }
-    }
-  };
-
-  socket.onclose = function gameClosed(event) {
-    console.log(event.data);
-  };
-
-  socket.onerror = function gameAborted(event) {
-    alert(event.data);
-  };
+  initWebSocket(socket, serverName, serverPort);
 };
 
-const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
+function toggleAutoPlay() {
+  AutoPlay = document.querySelector('#autoplay').checked;
+}
