@@ -574,6 +574,14 @@ const joinGame = async function () {
           tsumogiri: TileIndex === (tehaiLength - 1),
         }));
       } else {
+        if (msg.type === 'hora' || msg.type === 'ryukyoku') {
+          WaitingDiscard = true;
+          TileIndex = -1;
+          while (TileIndex < 0) {
+            await sleep(200);
+          }
+          WaitingDiscard = false;
+        }
         socket.send(JSON.stringify({ type: 'none' }));
       }
     }
