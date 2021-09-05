@@ -488,18 +488,6 @@ const initPlayerInfo = async function () {
   }
 };
 
-function joinGameOnSocketOpen(socket, serverName, serverPort) {
-  socket.onopen = function serverConnected(event) {
-    console.log(`Connected to server ${serverName}:${serverPort}`);
-    console.log(`Autoplay: ${AutoPlay}`);
-    socket.send(JSON.stringify({
-      type: 'join',
-      name: PlayerName,
-      room: GameRoom,
-    }));
-  };
-}
-
 function joinGame(socket, playerName, gameRoom) {
   socket.send(JSON.stringify({
     type: 'join',
@@ -508,29 +496,29 @@ function joinGame(socket, playerName, gameRoom) {
   }));
 }
 
-function initGame(socket, action) {
+function replyNone(socket) {
+  socket.send(JSON.stringify({ type: 'none' }));
+}
+
+function initGame(action, socket) {
   MyPlayerId = action.id;
   CurrentKyokuId = -1;
   console.log(action);
   // names = action.names;
   loadAction(action);
-  socket.send(JSON.stringify({ type: 'none' }));
+  replyNone(socket);
   initPlayerInfo();
 }
 
-function handleError(socket, action) {
+function handleError(action, socket) {
   socket.close();
-}
-
-function replyNone(socket) {
-  socket.send(JSON.stringify({ type: 'none' }));
 }
 
 function myAction(action) {
   return action.actor === MyPlayerId;
 }
 
-function discardTileAutomatically(socket, action) {
+function discardTileAutomatically(action, socket) {
   socket.send(JSON.stringify({
     type: 'dahai',
     actor: MyPlayerId,
@@ -539,7 +527,17 @@ function discardTileAutomatically(socket, action) {
   }));
 }
 
-async function takePossibleActionToDrawnTile(socket, action) {
+async function waitTileClicked() {
+  WaitingDiscard = true;
+  TileIndex = -1;
+  while (TileIndex < 0) {
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(200);
+  }
+  WaitingDiscard = false;
+}
+
+function takePossibleActionToDrawnTile(action, socket) {
   let done = false;
   action.possible_actions.forEach((pa) => {
     if (!done) {
@@ -554,34 +552,30 @@ async function takePossibleActionToDrawnTile(socket, action) {
     }
   });
   if (!done) {
-    WaitingDiscard = true;
-    TileIndex = -1;
-    while (TileIndex < 0) {
-      await sleep(200);
-    }
-    WaitingDiscard = false;
-    socket.send(JSON.stringify({
-      type: 'dahai',
-      actor: MyPlayerId,
-      pai: getClickedTile(),
-      tsumogiri: discardedDrawnTile(),
-    }));
+    waitTileClicked().then(() => {
+      socket.send(JSON.stringify({
+        type: 'dahai',
+        actor: MyPlayerId,
+        pai: getClickedTile(),
+        tsumogiri: discardedDrawnTile(),
+      }));
+    });
   }
 }
 
-async function takeActionOnTileDrawn(socket, action) {
+function takeActionOnTileDrawn(action, socket) {
   if (myAction(action)) {
     if (AutoPlay) {
-      discardTileAutomatically(socket, action);
+      discardTileAutomatically(action, socket);
     } else {
-      takePossibleActionToDrawnTile(socket, action);
+      takePossibleActionToDrawnTile(action, socket);
     }
   } else {
     replyNone(socket);
   }
 }
 
-function takePossibleActionToDiscardedTile(socket, action) {
+function takePossibleActionToDiscardedTile(action, socket) {
   let called = false;
   action.possible_actions.forEach((pa) => {
     if (!called && pa.type === 'hora') {
@@ -594,18 +588,19 @@ function takePossibleActionToDiscardedTile(socket, action) {
   }
 }
 
-function takeActionOnTileDiscarded(socket, action) {
+function takeActionOnTileDiscarded(action, socket) {
   if (myAction(action)) {
     replyNone(socket);
   } else {
-    takePossibleActionToDiscardedTile(socket, action);
+    takePossibleActionToDiscardedTile(action, socket);
   }
 }
 
-async function discardTileOnRiichi(socket, action) {
+async function waitDiscardableTileClicked(action) {
   TileIndex = -1;
   WaitingDiscard = true;
   while (TileIndex < 0) {
+    // eslint-disable-next-line no-await-in-loop
     await sleep(200);
     if (TileIndex >= 0) {
       const clickedTile = getCurrentTehais()[TileIndex];
@@ -617,44 +612,43 @@ async function discardTileOnRiichi(socket, action) {
     }
   }
   WaitingDiscard = false;
-  const dahai = getClickedTile();
-  socket.send(JSON.stringify({
-    type: 'dahai',
-    actor: MyPlayerId,
-    pai: dahai,
-    tsumogiri: discardedDrawnTile(),
-  }));
 }
 
-function takeActionOnRiichiCalled(socket, action) {
+function discardTileOnRiichi(action, socket) {
+  waitDiscardableTileClicked(action).then(() => {
+    socket.send(JSON.stringify({
+      type: 'dahai',
+      actor: MyPlayerId,
+      pai: getClickedTile(),
+      tsumogiri: discardedDrawnTile(),
+    }));
+  });
+}
+
+function takeActionOnRiichiCalled(action, socket) {
   if (myAction(action)) {
-    discardTileOnRiichi(socket, action);
+    discardTileOnRiichi(action, socket);
   } else {
     replyNone(socket);
   }
 }
 
-async function acknowledgeResult(socket) {
-  WaitingDiscard = true;
-  TileIndex = -1;
-  while (TileIndex < 0) {
-    await sleep(200);
-  }
-  WaitingDiscard = false;
-  replyNone(socket);
+function acknowledgeResult(socket) {
+  waitTileClicked().then(() => {
+    replyNone(socket);
+  });
 }
 
-function playGame(socket, action) {
-  loadAction(action);
+function takeAction(action, socket) {
   switch (action.type) {
     case 'tsumo':
-      takeActionOnTileDrawn(socket, action);
+      takeActionOnTileDrawn(action, socket);
       break;
     case 'dahai':
-      takeActionOnTileDiscarded(socket, action);
+      takeActionOnTileDiscarded(action, socket);
       break;
     case 'reach':
-      takeActionOnRiichiCalled(socket, action);
+      takeActionOnRiichiCalled(action, socket);
       break;
     case 'hora':
     case 'ryukyoku':
@@ -665,51 +659,53 @@ function playGame(socket, action) {
   }
 }
 
-function setActionsOnMessage(socket) {
-  socket.onmessage = async function messageReceived(event) {
-    const action = JSON.parse(event.data);
-    switch (action.type) {
-      case 'hello':
-        joinGame(socket, PlayerName, GameRoom);
-        break;
-      case 'start_game':
-        initGame(socket, action);
-        break;
-      case 'error':
-        handleError(socket, action);
-        break;
-      default:
-        playGame(socket, action);
-    }
-  };
+function serverConnected(event, socket, serverName, serverPort) {
+  console.log(event.data);
+  console.log(`Connected to server ${serverName}:${serverPort}`);
+  console.log(`Autoplay: ${AutoPlay}`);
+  socket.send(JSON.stringify({
+    type: 'join',
+    name: PlayerName,
+    room: GameRoom,
+  }));
 }
 
-function quitGameOnSocketClose(socket) {
-  socket.onclose = function gameClosed(event) {
-    console.log(event.data);
-  };
+function messageReceived(event, socket) {
+  const action = JSON.parse(event.data);
+  switch (action.type) {
+    case 'hello':
+      joinGame(socket, PlayerName, GameRoom);
+      break;
+    case 'start_game':
+      initGame(action, socket);
+      break;
+    case 'error':
+      handleError(action, socket);
+      break;
+    default:
+      loadAction(action);
+      takeAction(action, socket);
+  }
 }
 
-function abortGameOnSocketError(socket) {
-  socket.onerror = function gameAborted(event) {
-    alert(event.data);
-  };
+function gameClosed(event) {
+  console.log(event.data);
 }
 
-function initWebSocket(socket, serverName, serverPort) {
-  joinGameOnSocketOpen(socket, serverName, serverPort);
-  setActionsOnMessage(socket);
-  quitGameOnSocketClose(socket);
-  abortGameOnSocketError(socket);
+function gameAborted(event) {
+  alert(event.data);
 }
 
-const startGame = async function () {
+function startGame() {
   console.log('Connecting');
   const serverName = '127.0.0.1';
   const serverPort = 9292;
   const socket = new WebSocket(`ws://${serverName}:${serverPort}`);
-  initWebSocket(socket, serverName, serverPort);
-};
+  socket.onopen = (event) => serverConnected(event, socket, serverName, serverPort);
+  socket.onmessage = (event) => messageReceived(event, socket);
+  socket.onclose = (event) => gameClosed(event);
+  socket.onerror = (event) => gameAborted(event);
+}
 
 function toggleAutoPlay() {
   AutoPlay = document.querySelector('#autoplay').checked;
