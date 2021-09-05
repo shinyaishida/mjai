@@ -377,6 +377,7 @@ const loadAction = function (action) {
       };
       Kyokus.push(kyoku);
       board = createBoard(action, board);
+      $('#game-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}  ${kyoku.kyokuNum}局  ${kyoku.honba}本場`);
       break;
     case 'tsumo':
       actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);

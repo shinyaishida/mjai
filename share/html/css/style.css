@@ -73,6 +73,9 @@
 .status {
   margin-left: 121px;
   float: left;
+}
+
+.board-character {
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
   color: aliceblue;
