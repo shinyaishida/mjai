@@ -19,6 +19,7 @@
             <img id="players.hoRows.pais" class="repeated">
           </div>
         </div>
+        <div id="players.status" class="status pai-row"></div>
         <div class="tehai-container pai-row">
           <img id="players.tehais" class="repeated">
           <img id="players.tsumoPai" class="tsumo-pai">
@@ -35,14 +36,16 @@
       </div>
     </div>
 
-    <div class="controller-container">
-      <div><button id="connect-button" onclick="startGame()">Connect</button></div>
-      <div><label><input type="checkbox" id="autoplay" onclick="toggleAutoPlay()">Autoplay</label></div>
-      <table border="0">
+    <div class="controller-container console">
+      <div>
+        <button id="connect-button" onclick="startGame()">Connect</button>
+        <label><input type="checkbox" id="autoplay" onclick="toggleAutoPlay()">Autoplay</label>
+      </div>
+      <!-- <table border="0">
         <tr>
-          <th>風</th>
-          <th>プレイヤー</th>
-          <th>点</th>
+          <th>Cha</th>
+          <th>Player</th>
+          <th>Score</th>
         </tr>
         <tr id="playerInfos" class="repeated">
           <td id="playerInfos.index"></td>
@@ -50,7 +53,7 @@
           <td id="playerInfos.score"></td>
           <td id="playerInfos.viewpoint"></td>
         </tr>
-      </table>
+      </table> -->
       <div id="action-label"></div>
       <div>
         <dl id="action-elements"></dl>

@@ -241,12 +241,10 @@ function discardedDrawnTile() {
 }
 
 function renderActionLog(action) {
-  // const displayAction = {};
   const actionList = document.querySelector('#action-elements');
   actionList.innerHTML = '';
   Object.keys(action).forEach((k) => {
     if (k !== 'board' && k !== 'logs') {
-      // displayAction[k] = action[k];
       const termItem = document.createElement('dt');
       termItem.appendChild(document.createTextNode(k));
       const descItem = document.createElement('dd');
@@ -263,14 +261,10 @@ function renderActionLog(action) {
     actionList.appendChild(termItem);
     actionList.appendChild(descItem);
   }
-  // $('#action-label').text(JSON.stringify(displayAction));
-  // $('#log-label').text((action.logs && action.logs[CurrentViewpoint]) || '');
 }
 
-function renderPlayerInfo(player, playerId) {
-  const infoView = window.Dytem.playerInfos.at(playerId);
-  infoView.score.text(player.score);
-  infoView.viewpoint.text(playerId === CurrentViewpoint ? '+' : '');
+function renderPlayerStatus(view, player, playerId) {
+  view.status.text(`${BAKAZE[playerId]}  ${PlayersInfo[playerId].name}  ${player.score}`);
 }
 
 function renderPlayerTehais(view, player, playerId) {
@@ -325,7 +319,7 @@ function renderPlayerFuro(view, player, playerId) {
 
 function renderPlayerBoard(player, playerId) {
   const view = window.Dytem.players.at((playerId - CurrentViewpoint + 4) % 4);
-  renderPlayerInfo(player, playerId);
+  renderPlayerStatus(view, player, playerId);
   renderPlayerTehais(view, player, playerId);
   renderPlayerHo(view, player);
   renderPlayerFuro(view, player, playerId);
@@ -484,9 +478,7 @@ const initPlayerInfo = async function () {
     for (let j = 0; j < 3; j += 1) {
       playerView.hoRows.append();
     }
-    const playerInfoView = window.Dytem.playerInfos.append();
-    playerInfoView.index.text(BAKAZE[i]);
-    playerInfoView.name.text(PlayersInfo[i].name);
+    playerView.status.append();
   }
 };
 
@@ -506,7 +498,6 @@ function initGame(action, socket) {
   MyPlayerId = action.id;
   CurrentKyokuId = -1;
   console.log(action);
-  // names = action.names;
   loadAction(action);
   replyNone(socket);
   initPlayerInfo();

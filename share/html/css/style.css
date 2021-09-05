@@ -67,7 +67,15 @@
 
 .ho {
   margin-left: 209px;
-  margin-bottom: 40px;
+  /* margin-bottom: 40px; */
+}
+
+.status {
+  margin-left: 121px;
+  float: left;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  color: aliceblue;
 }
 
 .furo-container {
@@ -96,6 +104,12 @@
   left: 0px;
   top: 550px;
   padding: 8px;
+}
+
+.console {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  color: black;
 }
 
 .log-label {
