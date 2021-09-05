@@ -38,21 +38,11 @@
     <div class="controller-container">
       <div><button id="connect-button" onclick="startGame()">Connect</button></div>
       <div><label><input type="checkbox" id="autoplay" onclick="toggleAutoPlay()">Autoplay</label></div>
-      <!-- <div>
-        <select id="kyokuSelector"></select>
-      </div>
-      <div>
-        <button id="prev-button">Prev</button>
-        <button id="next-button">Next</button>
-        <input id="action-id-label" type="text" size="3" value="0">
-        <button id="go-button">Go</button>
-      </div> -->
       <table border="0">
         <tr>
           <th>風</th>
           <th>プレイヤー</th>
           <th>点</th>
-          <!-- <th><button id="viewpoint-button">Viewpoint</button></th> -->
         </tr>
         <tr id="playerInfos" class="repeated">
           <td id="playerInfos.index"></td>
@@ -67,21 +57,6 @@
       </div>
       <div id="log-label" class="log-label"></div>
     </div>
-    <!-- <script>
-      let input_file = document.getElementById("mjsonfile")
-      let allActions = []
-      input_file.onchange = () => {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          allActions = []
-          e.target.result.split("\n").forEach(element => {
-            allActions.push(JSON.parse(element))
-          });
-          initGame();
-        };
-        reader.readAsText(input_file.files[0]);
-      };
-    </script> -->
   </body>
 
 </html>

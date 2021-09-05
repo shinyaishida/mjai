@@ -37,6 +37,21 @@ let AutoPlay = false;
 
 const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 
+const parsePai = function (pai) {
+  if (pai.match(/^([1-9])(.)(r)?$/)) {
+    return {
+      type: RegExp.$2,
+      number: parseInt(RegExp.$1, 10),
+      red: RegExp.$3,
+    };
+  }
+  return {
+    type: 't',
+    number: TSUPAIS.indexOf(pai),
+    red: false,
+  };
+};
+
 const paiToImageUrl = function (pai, pose) {
   let ext;
   let name;
@@ -120,21 +135,6 @@ const deleteTehai = function (player, pai) {
   }
   player.tehais[idx] = null;
   return player.tehais[idx];
-};
-
-const parsePai = function (pai) {
-  if (pai.match(/^([1-9])(.)(r)?$/)) {
-    return {
-      type: RegExp.$2,
-      number: parseInt(RegExp.$1, 10),
-      red: RegExp.$3,
-    };
-  }
-  return {
-    type: 't',
-    number: TSUPAIS.indexOf(pai),
-    red: false,
-  };
 };
 
 const comparePais = function (lhs, rhs) {
@@ -660,7 +660,6 @@ function takeAction(action, socket) {
 }
 
 function serverConnected(event, socket, serverName, serverPort) {
-  console.log(event.data);
   console.log(`Connected to server ${serverName}:${serverPort}`);
   console.log(`Autoplay: ${AutoPlay}`);
   socket.send(JSON.stringify({
