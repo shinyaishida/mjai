@@ -23,6 +23,8 @@ const BAKAZE_TO_STR = {
   N: '北',
 };
 
+const ServerName = '127.0.0.1';
+const ServerPort = 9292;
 const Kyokus = [];
 let CurrentKyokuId = -1;
 let CurrentViewpoint = 0;
@@ -659,8 +661,8 @@ function takeAction(action, socket) {
   }
 }
 
-function serverConnected(event, socket, serverName, serverPort) {
-  console.log(`Connected to server ${serverName}:${serverPort}`);
+function serverConnected(event, socket) {
+  console.log(`Connected to server ${ServerName}:${ServerPort}`);
   console.log(`Autoplay: ${AutoPlay}`);
   socket.send(JSON.stringify({
     type: 'join',
@@ -696,11 +698,10 @@ function gameAborted(event) {
 }
 
 function startGame() {
-  console.log('Connecting');
-  const serverName = '127.0.0.1';
-  const serverPort = 9292;
-  const socket = new WebSocket(`ws://${serverName}:${serverPort}`);
-  socket.onopen = (event) => serverConnected(event, socket, serverName, serverPort);
+  const url = `ws://${ServerName}:${ServerPort}`;
+  console.log(`Connecting ${url}`);
+  const socket = new WebSocket(url);
+  socket.onopen = (event) => serverConnected(event, socket);
   socket.onmessage = (event) => messageReceived(event, socket);
   socket.onclose = (event) => gameClosed(event);
   socket.onerror = (event) => gameAborted(event);
