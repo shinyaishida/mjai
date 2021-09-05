@@ -6,13 +6,13 @@
 }
 
 .pai {
-  width: 22px;
-  height: 40px;
+  width: 33px;
+  height: 60px;
 }
 
 .laid-pai {
-  width: 30px;
-  height: 32px;
+  width: 45px;
+  height: 48px;
 }
 
 .board {
@@ -20,27 +20,27 @@
   position: absolute;
   left: 0px;
   top: 0px;
-  width: 550px;
-  height: 550px;
+  width: 810px;
+  height: 810px;
 }
 
 .player {
   /* border: 1px black solid; */
-  width: 550px;
+  width: 810px;
   position: absolute;
 }
 
 .player-0 {
   left: 0px;
-  top: 350px;
+  top: 510px;
   -webkit-transform: rotate(0deg);
   transform: rotate(0deg);
   z-index: 999;
 }
 
 .player-1 {
-  left: 175px;
-  top: 175px;
+  left: 255px;
+  top: 255px;
   -webkit-transform: rotate(270deg);
   transform: rotate(270deg);
 }
@@ -53,25 +53,25 @@
 }
 
 .player-3 {
-  left: -175px;
-  top: 175px;
+  left: -255px;
+  top: 255px;
   -webkit-transform: rotate(90deg);
   transform: rotate(90deg);
 }
 
 .wanpais-container {
   position: absolute;
-  left: 209px;
-  top: 255px;
+  left: 306px;
+  top: 375px;
 }
 
 .ho {
-  margin-left: 209px;
-  /* margin-bottom: 40px; */
+  margin-left: 306px;
+  /* margin-bottom: 60px; */
 }
 
 .status {
-  margin-left: 121px;
+  margin-left: 190px;
   float: left;
 }
 
@@ -86,12 +86,12 @@
 }
 
 .tehai-container {
-  margin-left: 121px;
+  margin-left: 190px;
   float: left;
 }
 
 .tsumo-pai {
-  margin-left: 5.5px;
+  margin-left: 8.3px;
 }
 
 .player-footer {
@@ -99,13 +99,13 @@
 }
 
 .pai-row {
-  height: 40px;
+  height: 60px;
 }
 
 .controller-container {
   position: absolute;
   left: 0px;
-  top: 550px;
+  top: 810px;
   padding: 8px;
 }
 
