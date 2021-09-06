@@ -253,25 +253,16 @@ function renderActionLog(action) {
       actionList.appendChild(descItem);
     }
   });
-  actionList.appendChild(document.createElement('br'));
-  actionList.appendChild(document.createElement('br'));
-  if (action.board) {
-    Object.keys(action.board).forEach((k) => {
+  if (action.logs) {
+    actionList.appendChild(document.createElement('br'));
+    Object.keys(action.logs).forEach((k) => {
       const termItem = document.createElement('dt');
-      termItem.appendChild(document.createTextNode(k));
+      termItem.appendChild(document.createTextNode('logs'));
       const descItem = document.createElement('dd');
-      descItem.appendChild(document.createTextNode(JSON.stringify(action.board[k])));
+      descItem.appendChild(document.createTextNode(action.logs[k]));
       actionList.appendChild(termItem);
       actionList.appendChild(descItem);
     });
-  }
-  if (action.logs) {
-    const termItem = document.createElement('dt');
-    termItem.appendChild(document.createTextNode('logs'));
-    const descItem = document.createElement('dd');
-    descItem.appendChild(document.createTextNode(action.logs));
-    actionList.appendChild(termItem);
-    actionList.appendChild(descItem);
   }
 }
 
@@ -389,7 +380,8 @@ const loadAction = function (action) {
       };
       Kyokus.push(kyoku);
       board = createBoard(action, board);
-      $('#game-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}  ${kyoku.kyokuNum}局  ${kyoku.honba}本場  供託${parseInt(action.kyotaku, 10) * 1000}`);
+      $('#round-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}${kyoku.kyokuNum}局  ${kyoku.honba}本場`);
+      $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
       break;
     case 'tsumo':
       actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);
@@ -403,7 +395,7 @@ const loadAction = function (action) {
       break;
     case 'reach_accepted':
       actorPlayer.reach = true;
-      $('#game-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}  ${kyoku.kyokuNum}局  ${kyoku.honba}本場  供託${parseInt(action.kyotaku, 10) * 1000}`);
+      $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
       break;
     case 'chi':
     case 'pon':
