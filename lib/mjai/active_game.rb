@@ -117,6 +117,7 @@ module Mjai
             do_action({
                         type: :reach_accepted,
                         actor: tsumo_actor,
+                        kyotaku: @ag_kyotaku,
                         deltas: deltas,
                         scores: get_scores(deltas)
                       })
