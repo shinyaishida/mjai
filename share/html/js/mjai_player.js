@@ -219,9 +219,13 @@ const getCurrentKyoku = function () {
   return Kyokus[CurrentKyokuId];
 };
 
-const getCurrentTehais = function () {
+function getCurrentPlayer() {
   const { actions } = getCurrentKyoku();
-  return actions[actions.length - 1].board.players[MyPlayerId].tehais;
+  return actions[actions.length - 1].board.players[MyPlayerId];
+}
+
+function getCurrentTehais() {
+  return getCurrentPlayer().tehais;
 };
 
 function getClickedTile() {
@@ -538,6 +542,17 @@ async function waitTileClicked() {
 
 function takePossibleActionToDrawnTile(action, socket) {
   let done = false;
+  if (getCurrentPlayer().reach) {
+    if (action.possible_actions.length == 0) {
+      socket.send(JSON.stringify({
+        type: 'dahai',
+        actor: MyPlayerId,
+        pai: action.pai,
+        tsumogiri: true,
+      }));
+      done = true;
+    }
+  }
   action.possible_actions.forEach((pa) => {
     if (!done) {
       switch (pa.type) {
