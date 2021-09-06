@@ -1,6 +1,34 @@
 /* These sizes should be even numbers to get good rendering when they are rotated. */
 /* Original size: 33x59 */
 /* Original size: 44x49 */
+/*
+  Tile size
+    tile_width : tile_height = 11 : 20
+    tile_width % 11 = 0
+    tile_height % 20 = 0
+
+  Board layout
+    l  =  board_width  =  board_height  =  24 * tile_width
+    a  =  13 * tile_width
+    b  =  (l - a) / 2
+    c  =  5 * tile_height
+    d  =  l - 2 * c  =  3 * tile_height + 2 * p
+    p  =  2/11 * tile_width
+
+  p  +              === padding
+  ^  |                [ space
+  d  |                [...wanpai
+  v  |                [ round info ]
+  p  +              === padding
+  ^  |                [...ho
+  |  |                [...ho                                 [..furo..]|
+  c  |                [...ho                                 [..furo..]|
+  |  |                [ player info ]                  tsumo [..furo..]|
+  v  |                [.............tehai.............] [.]  [..furo..]|
+     +---------------+---------------------------------+---------------+
+      <----- b -----> <-------------- a --------------> <----- b ----->
+      <------------------------------ l ------------------------------>
+*/
 .repeated {
   display: none;
 }
@@ -91,7 +119,7 @@
 }
 
 .tsumo-pai {
-  margin-left: 8.3px;
+  margin-left: 8px;
 }
 
 .player-footer {
@@ -106,7 +134,13 @@
   position: absolute;
   left: 0px;
   top: 810px;
-  padding: 8px;
+  padding: 6px;
+}
+
+.action-dump {
+  position: absolute;
+  left: 830px;
+  top: 0px;
 }
 
 .console {
