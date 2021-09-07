@@ -98,24 +98,6 @@ const cloneBoard = function (board) {
   return newBoard;
 };
 
-function createBoard(action, previousBoard) {
-  const board = {
-    players: [],
-    doraMarkers: [action.dora_marker],
-  };
-  for (let i = 0; i < 4; i += 1) {
-    board.players.push({
-      tehais: action.tehais[i],
-      furos: [],
-      ho: [],
-      score: (previousBoard) ? previousBoard.players[i].score : 25000,
-      reach: false,
-      reachHoIndex: null,
-    });
-  }
-  return board;
-}
-
 const removeRed = function (pai) {
   if (!pai) {
     return null;
@@ -207,7 +189,9 @@ const renderPais = function (pais, view, poses, mypai = false) {
 };
 
 const renderHo = function (player, offset, pais, view) {
-  const reachIndex = (player.reachHoIndex === null) ? null : player.reachHoIndex - offset;
+  const reachIndex = (player.reachHoIndex === null)
+    ? null
+    : player.reachHoIndex - offset;
   view.resize(pais.length);
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
@@ -219,6 +203,13 @@ const getCurrentKyoku = function () {
   return Kyokus[CurrentKyokuId];
 };
 
+function getCurrentBoard() {
+  const kyoku = getCurrentKyoku();
+  return (kyoku && kyoku.actions.length > 0)
+    ? kyoku.actions[kyoku.actions.length - 1].board
+    : null;
+}
+
 function getCurrentPlayer() {
   const { actions } = getCurrentKyoku();
   return actions[actions.length - 1].board.players[MyPlayerId];
@@ -227,6 +218,33 @@ function getCurrentPlayer() {
 function getCurrentTehais() {
   return getCurrentPlayer().tehais;
 };
+
+function createBoard(action) {
+  let previousBoard = null;
+  if (CurrentKyokuId > 0) {
+    const previousKyokuActions = Kyokus[CurrentKyokuId - 1].actions;
+    previousBoard = previousKyokuActions[previousKyokuActions.length - 1].board;
+  }
+  const board = {
+    players: [],
+    doraMarkers: [action.dora_marker],
+  };
+  for (let i = 0; i < 4; i += 1) {
+    board.players.push({
+      tehais: action.tehais[i],
+      furos: [],
+      ho: [],
+      score: (previousBoard) ? previousBoard.players[i].score : 25000,
+      reach: false,
+      reachHoIndex: null,
+    });
+  }
+  return board;
+}
+
+function cloneCurrentBoard() {
+  return cloneBoard(getCurrentBoard());
+}
 
 function getClickedTile() {
   const tehais = getCurrentTehais();
@@ -341,6 +359,16 @@ function renderWanpais(action) {
   renderPais(wanpais, window.Dytem.wanpais);
 }
 
+function renderGameState(action) {
+  if (action.type == 'start_kyoku') {
+    const kyoku = getCurrentKyoku();
+    $('#round-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}${kyoku.kyokuNum}局  ${kyoku.honba}本場`);
+    $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
+  } else if (action.type == 'reach_accepted') {
+    $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
+  }
+}
+
 const renderAction = function (action) {
   console.log(action);
   renderActionLog(action);
@@ -349,6 +377,7 @@ const renderAction = function (action) {
     renderPlayerBoard(player, i);
   }
   renderWanpais(action);
+  renderGameState(action);
 };
 
 function gameStarted(action) {
@@ -356,99 +385,117 @@ function gameStarted(action) {
   for (let i = 0; i < 4; i += 1) {
     PlayersInfo[i].name = action.names[i];
   }
+  action.board = null;
 }
 
-const loadAction = function (action) {
-  console.log(action);
-  let board = null;
-  let kyoku = null;
-  let actorPlayer = null;
-  let targetPlayer = null;
-  if (Kyokus.length > 0) {
-    kyoku = Kyokus[Kyokus.length - 1];
-    board = cloneBoard(kyoku.actions[kyoku.actions.length - 1].board);
-    actorPlayer = ('actor' in action) ? board.players[action.actor] : null;
-    targetPlayer = ('target' in action) ? board.players[action.target] : null;
-  }
-  switch (action.type) {
-    case 'start_game':
-      gameStarted(action);
-      break;
-    case 'start_kyoku':
-      CurrentKyokuId += 1;
-      kyoku = {
-        actions: [],
-        bakaze: action.bakaze,
-        kyokuNum: action.kyoku,
-        honba: action.honba,
+function roundStarted(action) {
+  CurrentKyokuId += 1;
+  Kyokus.push({
+    actions: [],
+    bakaze: action.bakaze,
+    kyokuNum: action.kyoku,
+    honba: action.honba,
+  });
+  action.board = createBoard(action);
+}
+
+function tileDrawn(action) {
+  actorPlayer = action.board.players[action.actor];
+  actorPlayer.tehais.push(action.pai);
+}
+
+function tileDiscarded(action) {
+  actorPlayer = action.board.players[action.actor];
+  deleteTehai(actorPlayer, action.pai);
+  actorPlayer.ho.push(action.pai);
+}
+
+function riichiCalled(action) {
+  actorPlayer = action.board.players[action.actor];
+  actorPlayer.reachHoIndex = actorPlayer.ho.length;
+}
+
+function riichiAccepted(action) {
+  actorPlayer = action.board.players[action.actor];
+  actorPlayer.reach = true;
+}
+
+function openMeldingCalled(action) {
+  actorPlayer = action.board.players[action.actor];
+  targetPlayer = action.board.players[action.target];
+  targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
+  action.consumed.forEach((tile) => {
+    deleteTehai(actorPlayer, tile);
+  });
+  actorPlayer.furos.push({
+    type: action.type,
+    taken: action.pai,
+    consumed: action.consumed,
+    target: action.target,
+  });
+}
+
+function ankanCalled(action) {
+  actorPlayer = action.board.players[action.actor];
+  action.consumed.forEach((tile) => {
+    deleteTehai(actorPlayer, tile);
+  });
+  actorPlayer.furos.push({
+    type: action.type,
+    consumed: action.consumed,
+  });
+}
+
+function kakanCalled(action) {
+  actorPlayer = action.board.players[action.actor];
+  deleteTehai(actorPlayer, action.pai);
+  actorPlayer.furos = actorPlayer.furos.concat([]);
+  const { furos } = actorPlayer;
+  const ref2 = furos.length;
+  for (let i = 0; ref2 >= 0 ? i < ref2 : i > ref2; i += ref2 >= 0 ? 1 : -1) {
+    if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
+      furos[i] = {
+        type: 'kakan',
+        taken: action.pai,
+        consumed: action.consumed,
+        target: furos[i].target,
       };
-      Kyokus.push(kyoku);
-      board = createBoard(action, board);
-      $('#round-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}${kyoku.kyokuNum}局  ${kyoku.honba}本場`);
-      $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
-      break;
+    }
+  }
+}
+
+function doraAdded(action) {
+  action.board.doraMarkers.push(action.dora_marker);
+}
+
+function applyRoundAction(action) {
+  action.board = cloneCurrentBoard();
+  switch (action.type) {
     case 'tsumo':
-      actorPlayer.tehais = actorPlayer.tehais.concat([action.pai]);
+      tileDrawn(action);
       break;
     case 'dahai':
-      deleteTehai(actorPlayer, action.pai);
-      actorPlayer.ho = actorPlayer.ho.concat([action.pai]);
+      tileDiscarded(action);
       break;
     case 'reach':
-      actorPlayer.reachHoIndex = actorPlayer.ho.length;
+      riichiCalled(action);
       break;
     case 'reach_accepted':
-      actorPlayer.reach = true;
-      $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
+      riichiAccepted(action);
       break;
     case 'chi':
     case 'pon':
-    case 'daiminkan': {
-      targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
-      action.consumed.forEach((tile) => {
-        deleteTehai(actorPlayer, tile);
-      });
-      actorPlayer.furos = actorPlayer.furos.concat([
-        {
-          type: action.type,
-          taken: action.pai,
-          consumed: action.consumed,
-          target: action.target,
-        },
-      ]);
+    case 'daiminkan':
+      openMeldingCalled(action);
       break;
-    }
-    case 'ankan': {
-      action.consumed.forEach((tile) => {
-        deleteTehai(actorPlayer, tile);
-      });
-      actorPlayer.furos = actorPlayer.furos.concat([
-        {
-          type: action.type,
-          consumed: action.consumed,
-        },
-      ]);
+    case 'ankan':
+      ankanCalled(action);
       break;
-    }
-    case 'kakan': {
-      deleteTehai(actorPlayer, action.pai);
-      actorPlayer.furos = actorPlayer.furos.concat([]);
-      const { furos } = actorPlayer;
-      const ref2 = furos.length;
-      for (let i = 0; ref2 >= 0 ? i < ref2 : i > ref2; i += ref2 >= 0 ? 1 : -1) {
-        if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
-          furos[i] = {
-            type: 'kakan',
-            taken: action.pai,
-            consumed: action.consumed,
-            target: furos[i].target,
-          };
-        }
-      }
+    case 'kakan':
+      kakanCalled(action);
       break;
-    }
     case 'dora':
-      board.doraMarkers = board.doraMarkers.concat([action.dora_marker]);
+      doraAdded(action);
       break;
     case 'end_game':
     case 'end_kyoku':
@@ -459,21 +506,42 @@ const loadAction = function (action) {
     default:
       throw new Error(`unknown action: ${action.type}`);
   }
+}
+
+function applyAction(action) {
+  if (action.type === 'start_game') {
+    gameStarted(action);
+  } else if (action.type === 'start_kyoku') {
+    roundStarted(action);
+  } else {
+    applyRoundAction(action);
+  }
+}
+
+function updateScores(action) {
   if (action.scores) {
     for (let i = 0; i < 4; i += 1) {
-      board.players[i].score = action.scores[i];
+      action.board.players[i].score = action.scores[i];
     }
   }
+}
+
+function sortTiles(action) {
+  for (let i = 0; i < 4; i += 1) {
+    if (action.actor !== undefined && i !== action.actor) {
+      ripai(action.board.players[i]);
+    }
+  }
+}
+
+const loadAction = function (action) {
+  console.log(action);
+  applyAction(action);
+  const kyoku = getCurrentKyoku();
   if (kyoku) {
-    for (let i = 0; i < 4; i += 1) {
-      if (action.actor !== undefined && i !== action.actor) {
-        ripai(board.players[i]);
-      }
-    }
-    action.board = board;
+    updateScores(action);
+    sortTiles(action);
     kyoku.actions.push(action);
-  }
-  if (CurrentKyokuId >= 0) {
     renderAction(action);
   }
 };
@@ -540,10 +608,19 @@ async function waitTileClicked() {
   WaitingDiscard = false;
 }
 
+function discardClickedTile(socket) {
+  socket.send(JSON.stringify({
+    type: 'dahai',
+    actor: MyPlayerId,
+    pai: getClickedTile(),
+    tsumogiri: discardedDrawnTile(),
+  }));
+}
+
 function takePossibleActionToDrawnTile(action, socket) {
   let done = false;
-  if (getCurrentPlayer().reach) {
-    if (action.possible_actions.length == 0) {
+  if (action.possible_actions.length == 0) {
+    if (getCurrentPlayer().reach) {
       socket.send(JSON.stringify({
         type: 'dahai',
         actor: MyPlayerId,
@@ -552,28 +629,22 @@ function takePossibleActionToDrawnTile(action, socket) {
       }));
       done = true;
     }
-  }
-  action.possible_actions.forEach((pa) => {
-    if (!done) {
-      switch (pa.type) {
-        case 'hora':
-        case 'reach':
-          socket.send(JSON.stringify(pa));
-          done = true;
-          break;
-        default:
+  } else {
+    action.possible_actions.forEach((pa) => {
+      if (!done) {
+        switch (pa.type) {
+          case 'hora':
+          case 'reach':
+            socket.send(JSON.stringify(pa));
+            done = true;
+            break;
+          default:
+        }
       }
-    }
-  });
-  if (!done) {
-    waitTileClicked().then(() => {
-      socket.send(JSON.stringify({
-        type: 'dahai',
-        actor: MyPlayerId,
-        pai: getClickedTile(),
-        tsumogiri: discardedDrawnTile(),
-      }));
     });
+  }
+  if (!done) {
+    waitTileClicked().then(() => { discardClickedTile(socket); });
   }
 }
 
@@ -628,29 +699,16 @@ async function waitDiscardableTileClicked(action) {
   WaitingDiscard = false;
 }
 
-function discardTileOnRiichi(action, socket) {
-  waitDiscardableTileClicked(action).then(() => {
-    socket.send(JSON.stringify({
-      type: 'dahai',
-      actor: MyPlayerId,
-      pai: getClickedTile(),
-      tsumogiri: discardedDrawnTile(),
-    }));
-  });
-}
-
 function takeActionOnRiichiCalled(action, socket) {
   if (myAction(action)) {
-    discardTileOnRiichi(action, socket);
+    waitDiscardableTileClicked(action).then(() => { discardClickedTile(socket); });
   } else {
     replyNone(socket);
   }
 }
 
 function acknowledgeResult(socket) {
-  waitTileClicked().then(() => {
-    replyNone(socket);
-  });
+  waitTileClicked().then(() => { replyNone(socket); });
 }
 
 function takeAction(action, socket) {
