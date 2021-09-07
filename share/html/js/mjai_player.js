@@ -189,13 +189,13 @@ const renderPais = function (pais, view, poses, mypai = false) {
 };
 
 const renderHo = function (player, offset, pais, view) {
-  const reachIndex = (player.reachHoIndex === null)
+  const riichiIndex = (player.riichiHoIndex === null)
     ? null
-    : player.reachHoIndex - offset;
+    : player.riichiHoIndex - offset;
   view.resize(pais.length);
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
-    renderPai(pais[i], view.at(i), i, i === reachIndex ? 3 : 1);
+    renderPai(pais[i], view.at(i), i, i === riichiIndex ? 3 : 1);
   }
 };
 
@@ -235,8 +235,8 @@ function createBoard(action) {
       furos: [],
       ho: [],
       score: (previousBoard) ? previousBoard.players[i].score : 25000,
-      reach: false,
-      reachHoIndex: null,
+      riichi: false,
+      riichiHoIndex: null,
     });
   }
   return board;
@@ -364,7 +364,7 @@ function renderGameState(action) {
     const kyoku = getCurrentKyoku();
     $('#round-state').text(`${BAKAZE_TO_STR[kyoku.bakaze]}${kyoku.kyokuNum}局  ${kyoku.honba}本場`);
     $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
-  } else if (action.type == 'reach_accepted') {
+  } else if (action.type == 'riichi_accepted') {
     $('#riichi-deposit').text(`供託${parseInt(action.kyotaku, 10) * 1000}`);
   }
 }
@@ -412,12 +412,12 @@ function tileDiscarded(action) {
 
 function riichiCalled(action) {
   actorPlayer = action.board.players[action.actor];
-  actorPlayer.reachHoIndex = actorPlayer.ho.length;
+  actorPlayer.riichiHoIndex = actorPlayer.ho.length;
 }
 
 function riichiAccepted(action) {
   actorPlayer = action.board.players[action.actor];
-  actorPlayer.reach = true;
+  actorPlayer.riichi = true;
 }
 
 function openMeldingCalled(action) {
@@ -477,10 +477,10 @@ function applyRoundAction(action) {
     case 'dahai':
       tileDiscarded(action);
       break;
-    case 'reach':
+    case 'riichi':
       riichiCalled(action);
       break;
-    case 'reach_accepted':
+    case 'riichi_accepted':
       riichiAccepted(action);
       break;
     case 'chi':
@@ -620,7 +620,7 @@ function discardClickedTile(socket) {
 function takePossibleActionToDrawnTile(action, socket) {
   let done = false;
   if (action.possible_actions.length == 0) {
-    if (getCurrentPlayer().reach) {
+    if (getCurrentPlayer().riichi) {
       socket.send(JSON.stringify({
         type: 'dahai',
         actor: MyPlayerId,
@@ -634,7 +634,7 @@ function takePossibleActionToDrawnTile(action, socket) {
       if (!done) {
         switch (pa.type) {
           case 'hora':
-          case 'reach':
+          case 'riichi':
             socket.send(JSON.stringify(pa));
             done = true;
             break;
@@ -719,7 +719,7 @@ function takeAction(action, socket) {
     case 'dahai':
       takeActionOnTileDiscarded(action, socket);
       break;
-    case 'reach':
+    case 'riichi':
       takeActionOnRiichiCalled(action, socket);
       break;
     case 'hora':

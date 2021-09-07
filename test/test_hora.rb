@@ -13,8 +13,8 @@ class TC_Hora < Test::Unit::TestCase
     jikaze: Pai.new('S'),
     doras: Pai.parse_pais('2m'),
     uradoras: Pai.parse_pais('2s'),
-    reach: false,
-    double_reach: false,
+    riichi: false,
+    double_riichi: false,
     ippatsu: false,
     rinshan: false,
     haitei: false,
@@ -50,18 +50,18 @@ class TC_Hora < Test::Unit::TestCase
                        hora_type: :ron
                      }))
 
-    assert(has_yaku?([:reach, 1], {
+    assert(has_yaku?([:riichi, 1], {
                        tehais: Pai.parse_pais('234678m345p3477s'),
                        taken: Pai.new('5s'),
                        hora_type: :ron,
-                       reach: true
+                       riichi: true
                      }))
 
     assert(has_yaku?([:ippatsu, 1], {
                        tehais: Pai.parse_pais('234678m345p3477s'),
                        taken: Pai.new('5s'),
                        hora_type: :ron,
-                       reach: true,
+                       riichi: true,
                        ippatsu: true
                      }))
 
@@ -216,12 +216,12 @@ class TC_Hora < Test::Unit::TestCase
                        hora_type: :ron
                      }))
 
-    assert(has_yaku?([:double_reach, 2], {
+    assert(has_yaku?([:double_riichi, 2], {
                        tehais: Pai.parse_pais('234678m345p3477s'),
                        taken: Pai.new('5s'),
                        hora_type: :ron,
-                       reach: true,
-                       double_reach: true
+                       riichi: true,
+                       double_riichi: true
                      }))
 
     assert(has_yaku?([:honiso, 3], {
@@ -345,14 +345,14 @@ class TC_Hora < Test::Unit::TestCase
                       tehais: Pai.parse_pais('56799m11134678s'),
                       taken: Pai.new('5s'),
                       hora_type: :ron,
-                      reach: true
+                      riichi: true
                     }).valid?)
 
     assert(!new_hora({
                        tehais: Pai.parse_pais('56799m11134678s'),
                        taken: Pai.new('5s'),
                        hora_type: :ron,
-                       reach: false
+                       riichi: false
                      }).valid?)
   end
 

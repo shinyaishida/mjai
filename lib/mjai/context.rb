@@ -9,7 +9,7 @@ module Mjai
 
     define_fields(%i[
                     oya bakaze jikaze doras uradoras
-                    reach double_reach ippatsu
+                    riichi double_riichi ippatsu
                     rinshan haitei first_turn chankan
                   ])
 

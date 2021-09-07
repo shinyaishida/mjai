@@ -15,12 +15,12 @@ module Mjai
   class TenhouArchive < Archive
     module Util
       YAKU_ID_TO_NAME = %i[
-        menzenchin_tsumoho reach ippatsu chankan rinshankaiho
+        menzenchin_tsumoho riichi ippatsu chankan rinshankaiho
         haiteiraoyue hoteiraoyui pinfu tanyaochu ipeko
         jikaze jikaze jikaze jikaze
         bakaze bakaze bakaze bakaze
         sangenpai sangenpai sangenpai
-        double_reach chitoitsu honchantaiyao ikkitsukan sanshokudojun
+        double_riichi chitoitsu honchantaiyao ikkitsukan sanshokudojun
         sanshokudoko sankantsu toitoiho sananko shosangen honroto
         ryanpeko junchantaiyao honiso
         chiniso
@@ -110,11 +110,11 @@ module Mjai
                       pai: pid_to_pai(pid),
                       tsumogiri: tsumogiri
                     })
-        when 'REACH'
+        when 'RIICHI'
           actor = players[elem['who'].to_i]
           case elem['step']
           when '1'
-            do_action({ type: :reach, actor: actor })
+            do_action({ type: :riichi, actor: actor })
           when '2'
             deltas = [0, 0, 0, 0]
             deltas[actor.id] = -1000
@@ -123,7 +123,7 @@ module Mjai
               players[i].score + deltas[i]
             end
             do_action({
-                        type: :reach_accepted,
+                        type: :riichi_accepted,
                         actor: actor,
                         deltas: deltas,
                         scores: scores
@@ -193,7 +193,7 @@ module Mjai
           reason_map = {
             'yao9' => :kyushukyuhai,
             'kaze4' => :sufonrenta,
-            'reach4' => :suchareach,
+            'riichi4' => :suchariichi,
             'ron3' => :sanchaho,
             'nm' => :nagashimangan,
             'kan4' => :sukaikan,

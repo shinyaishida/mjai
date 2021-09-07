@@ -13,8 +13,8 @@ module Mjai
                 :ho,              # 河 (鳴かれた牌を含まない)
                 :sutehais,        # 捨牌 (鳴かれた牌を含む)
                 :extra_anpais,    # sutehais以外のこのプレーヤに対する安牌
-                :reach_state,
-                :reach_ho_index,
+                :riichi_state,
+                :riichi_ho_index,
                 :pao_for_id,
                 :attributes
     attr_accessor :name, :game, :score
@@ -23,12 +23,12 @@ module Mjai
       @sutehais + @extra_anpais
     end
 
-    def reach?
-      @reach_state == :accepted
+    def riichi?
+      @riichi_state == :accepted
     end
 
-    def double_reach?
-      @double_reach
+    def double_riichi?
+      @double_riichi
     end
 
     def ippatsu_chance?
@@ -58,9 +58,9 @@ module Mjai
         @ho = nil
         @sutehais = nil
         @extra_anpais = nil
-        @reach_state = nil
-        @reach_ho_index = nil
-        @double_reach = false
+        @riichi_state = nil
+        @riichi_ho_index = nil
+        @double_riichi = false
         @ippatsu_chance = false
         @pao_for_id = nil
         @rinshan = false
@@ -70,9 +70,9 @@ module Mjai
         @ho = []
         @sutehais = []
         @extra_anpais = []
-        @reach_state = :none
-        @reach_ho_index = nil
-        @double_reach = false
+        @riichi_state = :none
+        @riichi_ho_index = nil
+        @double_riichi = false
         @ippatsu_chance = false
         @pao_for_id = nil
         @rinshan = false
@@ -98,7 +98,7 @@ module Mjai
           @sutehais.push(action.pai)
           @ippatsu_chance = false
           @rinshan = false
-          @extra_anpais.clear unless reach?
+          @extra_anpais.clear unless riichi?
         when :chi, :pon, :daiminkan, :ankan
           action.consumed.each do |pai|
             delete_tehai(pai)
@@ -131,12 +131,12 @@ module Mjai
                                          target: @furos[pon_index].target
                                        })
           @rinshan = true
-        when :reach
-          @reach_state = :declared
-          @double_reach = true if @game.first_turn?
-        when :reach_accepted
-          @reach_state = :accepted
-          @reach_ho_index = @ho.size - 1
+        when :riichi
+          @riichi_state = :declared
+          @double_riichi = true if @game.first_turn?
+        when :riichi_accepted
+          @riichi_state = :accepted
+          @riichi_ho_index = @ho.size - 1
           @ippatsu_chance = true
         end
       end
@@ -171,13 +171,13 @@ module Mjai
       tenpai_info.waited_pais.any? { |pai| anpais.include?(pai) }
     end
 
-    def can_reach?(shanten_analysis = nil)
+    def can_riichi?(shanten_analysis = nil)
       shanten_analysis ||= ShantenAnalysis.new(@tehais, 0)
       @game.current_action.type == :tsumo &&
         @game.current_action.actor == self &&
         shanten_analysis.shanten <= 0 &&
         @furos.all? { |f| f.type == :ankan } &&
-        !reach? &&
+        !riichi? &&
         game.num_pipais >= 4 &&
         @score >= 1000
     end
@@ -221,7 +221,7 @@ module Mjai
                                       pai: action.pai
                                     }))
         end
-        result.push(create_action({ type: :reach })) if can_reach?
+        result.push(create_action({ type: :riichi })) if can_riichi?
         result.push(create_action({ type: :ryukyoku, reason: :kyushukyuhai })) if can_ryukyoku?
       end
       result += possible_furo_actions
@@ -234,7 +234,7 @@ module Mjai
 
       if action.type == :dahai &&
          action.actor != self &&
-         !reach? &&
+         !riichi? &&
          @game.num_pipais.positive?
 
         if @game.can_kan?
@@ -283,7 +283,7 @@ module Mjai
         tehais.uniq.each do |pai|
           same_pais = tehais.select { |tp| tp.same_symbol?(pai) }
           if same_pais.size >= 4 && !pai.red?
-            if reach?
+            if riichi?
               orig_tenpai = TenpaiAnalysis.new(tehais[0...-1])
               new_tenpai = TenpaiAnalysis.new(
                 tehais.reject { |tp| tp.same_symbol?(pai) }
@@ -318,14 +318,14 @@ module Mjai
     end
 
     def possible_dahais(action = @game.current_action, tehais = @tehais)
-      if reach? && action.type == :tsumo && action.actor == self
+      if riichi? && action.type == :tsumo && action.actor == self
 
-        # Only tsumogiri is allowed after reach.
+        # Only tsumogiri is allowed after riichi.
         [action.pai]
 
-      elsif action.type == :reach
+      elsif action.type == :riichi
 
-        # Tehais after the dahai must be tenpai just after reach.
+        # Tehais after the dahai must be tenpai just after riichi.
         result = []
         tehais.uniq.each do |pai|
           pais = tehais.dup
@@ -381,8 +381,8 @@ module Mjai
                     jikaze: jikaze,
                     doras: game.doras,
                     uradoras: [], # TODO
-                    reach: reach?,
-                    double_reach: false, # TODO
+                    riichi: riichi?,
+                    double_riichi: false, # TODO
                     ippatsu: false,  # TODO
                     rinshan: false,  # TODO
                     haitei: game.num_pipais.zero?,

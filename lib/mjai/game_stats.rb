@@ -6,11 +6,11 @@ require 'mjai/confidence_interval'
 module Mjai
   class GameStats
     YAKU_JA_NAMES = {
-      menzenchin_tsumoho: '面前清自摸和', reach: '立直', ippatsu: '一発',
+      menzenchin_tsumoho: '面前清自摸和', riichi: '立直', ippatsu: '一発',
       chankan: '槍槓', rinshankaiho: '嶺上開花', haiteiraoyue: '海底摸月',
       hoteiraoyui: '河底撈魚', pinfu: '平和', tanyaochu: '断么九',
       ipeko: '一盃口', jikaze: '面風牌', bakaze: '圏風牌',
-      sangenpai: '三元牌', double_reach: 'ダブル立直', chitoitsu: '七対子',
+      sangenpai: '三元牌', double_riichi: 'ダブル立直', chitoitsu: '七対子',
       honchantaiyao: '混全帯么九', ikkitsukan: '一気通貫',
       sanshokudojun: '三色同順', sanshokudoko: '三色同刻', sankantsu: '三槓子',
       toitoiho: '対々和', sananko: '三暗刻', shosangen: '小三元',
@@ -33,7 +33,7 @@ module Mjai
       name_to_dora_stats = {}
       name_to_hoju_count = {}
       name_to_furo_kyoku_count = {}
-      name_to_reach_count = {}
+      name_to_riichi_count = {}
       name_to_hora_points = {}
 
       mjson_paths.each do |path|
@@ -65,7 +65,7 @@ module Mjai
         end
 
         # Kyoku specific fields.
-        id_to_done_reach = {}
+        id_to_done_riichi = {}
         id_to_done_furo = {}
         archive.raw_actions.each do |raw_action|
           if raw_action.type == :hora
@@ -91,7 +91,7 @@ module Mjai
               name_to_hoju_count[target_name] += 1
             end
           end
-          id_to_done_reach[raw_action.actor.id] = true if raw_action.type == :reach_accepted
+          id_to_done_riichi[raw_action.actor.id] = true if raw_action.type == :riichi_accepted
           id_to_done_furo[raw_action.actor.id] = true if raw_action.type == :pon
           id_to_done_furo[raw_action.actor.id] = true if raw_action.type == :chi
           id_to_done_furo[raw_action.actor.id] = true if raw_action.type == :daiminkan
@@ -104,9 +104,9 @@ module Mjai
               name_to_furo_kyoku_count[name] ||= 0
               name_to_furo_kyoku_count[name] += 1
             end
-            if id_to_done_reach[p]
-              name_to_reach_count[name] ||= 0
-              name_to_reach_count[name] += 1
+            if id_to_done_riichi[p]
+              name_to_riichi_count[name] ||= 0
+              name_to_riichi_count[name] += 1
             end
 
             name_to_kyoku_count[name] ||= 0
@@ -115,7 +115,7 @@ module Mjai
 
           # Reset kyoku specific fields.
           id_to_done_furo = {}
-          id_to_done_reach = {}
+          id_to_done_riichi = {}
         end
       end
       puts(format('errors: %d / %d', num_errors, mjson_paths.size)) if num_errors.positive?
@@ -158,9 +158,9 @@ module Mjai
       end
       puts
 
-      puts('Reach rates:')
-      name_to_reach_count.sort.each do |name, reach_count|
-        puts(format('  %s: %.1f%%', name, 100.0 * reach_count / name_to_kyoku_count[name]))
+      puts('Riichi rates:')
+      name_to_riichi_count.sort.each do |name, riichi_count|
+        puts(format('  %s: %.1f%%', name, 100.0 * riichi_count / name_to_kyoku_count[name]))
       end
       puts
 

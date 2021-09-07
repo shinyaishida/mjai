@@ -32,7 +32,7 @@ module Mjai
       next_action = @archive.actions[@action_index]
       if next_action&.actor &&
          next_action.actor.id.zero? &&
-         %i[dahai chi pon daiminkan kakan ankan reach hora].include?(
+         %i[dahai chi pon daiminkan kakan ankan riichi hora].include?(
            next_action.type
          )
         Action.from_json(next_action.to_json, game)

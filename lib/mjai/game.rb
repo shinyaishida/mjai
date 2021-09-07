@@ -135,7 +135,7 @@ module Mjai
         else
           action
         end
-      when :reach
+      when :riichi
         if action.actor == player
           action.merge({
                          cannot_dahai: with_response_hint ? (player.tehais.uniq - player.possible_dahais) : nil
@@ -170,12 +170,12 @@ module Mjai
       if expect_response_from?(player)
         case action.type
         when :start_game, :start_kyoku, :end_kyoku, :end_game, :error,
-              :hora, :ryukyoku, :dora, :reach_accepted
+              :hora, :ryukyoku, :dora, :riichi_accepted
           valid = !response
         when :tsumo
           valid = if is_actor
                     response &&
-                      %i[dahai reach ankan kakan hora ryukyoku].include?(response.type)
+                      %i[dahai riichi ankan kakan hora ryukyoku].include?(response.type)
                   else
                     !response
                   end
@@ -185,7 +185,7 @@ module Mjai
                   else
                     !response || %i[chi pon daiminkan hora].include?(response.type)
                   end
-        when :chi, :pon, :reach
+        when :chi, :pon, :riichi
           valid = if is_actor
                     response && response.type == :dahai
                   else
@@ -222,19 +222,19 @@ module Mjai
       when :dahai
 
         validate_fields_exist(response, %i[pai tsumogiri])
-        if action.actor.reach?
+        if action.actor.riichi?
           # possible_dahais check doesn't subsume this check. Consider karagiri
-          # (with tsumogiri=false) after reach.
-          validate(response.tsumogiri, 'tsumogiri must be true after reach.')
+          # (with tsumogiri=false) after riichi.
+          validate(response.tsumogiri, 'tsumogiri must be true after riichi.')
         end
         validate(
           response.actor.possible_dahais.include?(response.pai),
           'Cannot dahai this pai. The pai is not in the tehais, ' \
-            "it's kuikae, or it causes noten reach."
+            "it's kuikae, or it causes noten riichi."
         )
 
         # Validates that pai and tsumogiri fields are consistent.
-        if %i[tsumo reach].include?(action.type)
+        if %i[tsumo riichi].include?(action.type)
           if response.tsumogiri
             tsumo_pai = response.actor.tehais[-1]
             validate(
@@ -274,8 +274,8 @@ module Mjai
         end
         validate(valid, 'The furo is not allowed.')
 
-      when :reach
-        validate(response.actor.can_reach?, 'Cannot reach.')
+      when :riichi
+        validate(response.actor.can_riichi?, 'Cannot riichi.')
 
       when :hora
         validate_fields_exist(response, %i[target pai])
@@ -339,8 +339,8 @@ module Mjai
                  jikaze: action.actor.jikaze,
                  doras: doras,
                  uradoras: uradoras,
-                 reach: action.actor.reach?,
-                 double_reach: action.actor.double_reach?,
+                 riichi: action.actor.riichi?,
+                 double_riichi: action.actor.double_riichi?,
                  ippatsu: action.actor.ippatsu_chance?,
                  rinshan: action.actor.rinshan?,
                  haitei: (num_pipais.zero? && !action.actor.rinshan?),
@@ -383,8 +383,8 @@ module Mjai
         actor_mark = player == @actor ? '>' : ' '
         oya_mark = player == @oya ? '*' : ' '
         Mjai::LOGGER.debug("#{actor_mark} #{oya_mark}#{i} tehai: #{Pai.dump_pais(player.tehais)} #{player.furos.join(' ')}")
-        ho_str = if player.reach_ho_index
-                   "#{Pai.dump_pais(player.ho[0...player.reach_ho_index])}=#{Pai.dump_pais(player.ho[player.reach_ho_index..])}"
+        ho_str = if player.riichi_ho_index
+                   "#{Pai.dump_pais(player.ho[0...player.riichi_ho_index])}=#{Pai.dump_pais(player.ho[player.riichi_ho_index..])}"
                  else
                    Pai.dump_pais(player.ho)
                  end

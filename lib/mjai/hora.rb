@@ -186,7 +186,7 @@ module Mjai
         add_yaku(:akadora, @hora.num_akadoras, @hora.num_akadoras)
 
         # 一飜
-        add_yaku(:reach, 1, 0) if @hora.reach
+        add_yaku(:riichi, 1, 0) if @hora.riichi
         add_yaku(:ippatsu, 1, 0) if @hora.ippatsu
         add_yaku(:menzenchin_tsumoho, 1, 0) if menzen? && @hora.hora_type == :tsumo
         add_yaku(:tanyaochu, 1, 1) if @all_pais.all? { |pai| !pai.yaochu? }
@@ -214,9 +214,9 @@ module Mjai
         add_yaku(:sanshokudoko, 2, 2) if sanshoku?(%i[kotsu kantsu])
         add_yaku(:sankantsu, 2, 2) if n_kantsu?(3)
         add_yaku(:shosangen, 2, 2) if shosangen?
-        if @hora.double_reach
-          add_yaku(:double_reach, 2, 0)
-          delete_yaku(:reach)
+        if @hora.double_riichi
+          add_yaku(:double_riichi, 2, 0)
+          delete_yaku(:riichi)
         end
 
         # 三飜
@@ -413,7 +413,7 @@ module Mjai
     define_fields(%i[
                     tehais furos taken hora_type
                     oya bakaze jikaze doras uradoras
-                    reach double_reach ippatsu
+                    riichi double_riichi ippatsu
                     rinshan haitei first_turn chankan
                   ])
 

@@ -16,7 +16,7 @@ module Mjai
       if action.actor == self
         case action.type
 
-        when :tsumo, :chi, :pon, :reach
+        when :tsumo, :chi, :pon, :riichi
 
           current_shanten_analysis = ShantenAnalysis.new(tehais, nil, [:normal])
           current_shanten = current_shanten_analysis.shanten
@@ -30,9 +30,9 @@ module Mjai
                                      pai: action.pai
                                    })
             end
-          elsif can_reach?(current_shanten_analysis)
-            return create_action({ type: :reach })
-          elsif reach?
+          elsif can_riichi?(current_shanten_analysis)
+            return create_action({ type: :riichi })
+          elsif riichi?
             return create_action({ type: :dahai, pai: action.pai, tsumogiri: true })
           end
 
@@ -52,7 +52,7 @@ module Mjai
           sutehai_cands = possible_dahais if sutehai_cands.empty?
           # log("sutehai_cands = %p" % [sutehai_cands])
           sutehai = sutehai_cands[rand(sutehai_cands.size)]
-          tsumogiri = %i[tsumo reach].include?(action.type) && sutehai == tehais[-1]
+          tsumogiri = %i[tsumo riichi].include?(action.type) && sutehai == tehais[-1]
           return create_action({ type: :dahai, pai: sutehai, tsumogiri: tsumogiri })
 
         end

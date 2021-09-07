@@ -69,7 +69,7 @@ module Mjai
 
     # 摸打
     def mota
-      reach_pending = false
+      riichi_pending = false
       kandora_pending = false
       tsumo_actor = @actor
       actions = [Action.new({ type: :tsumo, actor: @actor, pai: @pipais.pop })]
@@ -106,22 +106,22 @@ module Mjai
               raise('should not happen')
             end
           # TODO: Handle 4 kans.
-          when :reach
-            reach_pending = true
+          when :riichi
+            riichi_pending = true
           end
-          if reach_pending &&
+          if riichi_pending &&
              (next_actions.empty? || !%i[dahai hora].include?(next_actions[0].type))
             @ag_kyotaku += 1
             deltas = [0, 0, 0, 0]
             deltas[tsumo_actor.id] = -1000
             do_action({
-                        type: :reach_accepted,
+                        type: :riichi_accepted,
                         actor: tsumo_actor,
                         kyotaku: @ag_kyotaku,
                         deltas: deltas,
                         scores: get_scores(deltas)
                       })
-            reach_pending = false
+            riichi_pending = false
           end
           if kandora_pending &&
              !next_actions.empty? && %i[dahai tsumo].include?(next_actions[0].type)
@@ -136,8 +136,8 @@ module Mjai
     end
 
     def check_ryukyoku
-      if players.all?(&:reach?)
-        process_ryukyoku(:suchareach)
+      if players.all?(&:riichi?)
+        process_ryukyoku(:suchariichi)
         throw(:end_kyoku)
       end
       if first_turn? && !players[0].sutehais.empty? && players[0].sutehais[0].fonpai? &&
@@ -169,8 +169,8 @@ module Mjai
       tsumibo = honba
       ura = nil
       actions.sort_by { |a| distance(a.actor, a.target) }.each do |action|
-        ura = @wanpais.pop(dora_markers.size) if action.actor.reach? && !ura
-        uradora_markers = action.actor.reach? ? ura : []
+        ura = @wanpais.pop(dora_markers.size) if action.actor.riichi? && !ura
+        uradora_markers = action.actor.riichi? ? ura : []
         hora = get_hora(action, {
                           uradora_markers: uradora_markers,
                           previous_action: previous_action
@@ -227,7 +227,7 @@ module Mjai
       tenpais = []
       tehais = []
       players.each do |player|
-        if reason == :suchareach || actors.include?(player) # :sanchaho, :kyushukyuhai
+        if reason == :suchariichi || actors.include?(player) # :sanchaho, :kyushukyuhai
           tenpais.push(reason != :kyushukyuhai)
           tehais.push(player.tehais)
         else

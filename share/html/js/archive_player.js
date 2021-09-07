@@ -3,9 +3,9 @@ var BAKAZE_TO_STR, TSUPAIS, TSUPAI_TO_IMAGE_NAME, cloneBoard, comparePais, curre
 
 window.console || (window.console = {});
 
-(_base = window.console).log || (_base.log = function() {});
+(_base = window.console).log || (_base.log = function () { });
 
-(_base1 = window.console).error || (_base1.error = function() {});
+(_base1 = window.console).error || (_base1.error = function () { });
 
 TSUPAIS = [null, "E", "S", "W", "N", "P", "F", "C"];
 
@@ -36,7 +36,7 @@ currentViewpoint = 0;
 
 playerInfos = [{}, {}, {}, {}];
 
-parsePai = function(pai) {
+parsePai = function (pai) {
   if (pai.match(/^([1-9])(.)(r)?$/)) {
     return {
       type: RegExp.$2,
@@ -52,7 +52,7 @@ parsePai = function(pai) {
   }
 };
 
-comparePais = function(lhs, rhs) {
+comparePais = function (lhs, rhs) {
   var lhsRep, parsedLhs, parsedRhs, rhsRep;
   parsedLhs = parsePai(lhs);
   lhsRep = parsedLhs.type + parsedLhs.number + (parsedLhs.red ? "1" : "0");
@@ -67,11 +67,11 @@ comparePais = function(lhs, rhs) {
   }
 };
 
-sortPais = function(pais) {
+sortPais = function (pais) {
   return pais.sort(comparePais);
 };
 
-paiToImageUrl = function(pai, pose) {
+paiToImageUrl = function (pai, pose) {
   var ext, name, parsedPai, redSuffix;
   if (pai) {
     if (pai === "?") {
@@ -96,7 +96,7 @@ paiToImageUrl = function(pai, pose) {
   }
 };
 
-cloneBoard = function(board) {
+cloneBoard = function (board) {
   var bk, bv, newBoard, newPlayer, pk, player, pv, _i, _len;
   newBoard = {};
   for (bk in board) {
@@ -119,7 +119,7 @@ cloneBoard = function(board) {
   return newBoard;
 };
 
-initPlayers = function(board) {
+initPlayers = function (board) {
   var player, _i, _len, _ref, _results;
   _ref = board.players;
   _results = [];
@@ -128,13 +128,13 @@ initPlayers = function(board) {
     player.tehais = null;
     player.furos = [];
     player.ho = [];
-    player.reach = false;
-    _results.push(player.reachHoIndex = null);
+    player.riichi = false;
+    _results.push(player.riichiHoIndex = null);
   }
   return _results;
 };
 
-removeRed = function(pai) {
+removeRed = function (pai) {
   if (!pai) {
     return null;
   }
@@ -145,7 +145,7 @@ removeRed = function(pai) {
   }
 };
 
-loadAction = function(action) {
+loadAction = function (action) {
   var actorPlayer, board, furos, i, kyoku, pai, prevBoard, targetPlayer, _i, _j, _k, _l, _len, _len1, _m, _n, _o, _ref, _ref1, _ref2;
   if (kyokus.length > 0) {
     kyoku = kyokus[kyokus.length - 1];
@@ -206,11 +206,11 @@ loadAction = function(action) {
       deleteTehai(actorPlayer, action.pai);
       actorPlayer.ho = actorPlayer.ho.concat([action.pai]);
       break;
-    case "reach":
-      actorPlayer.reachHoIndex = actorPlayer.ho.length;
+    case "riichi":
+      actorPlayer.riichiHoIndex = actorPlayer.ho.length;
       break;
-    case "reach_accepted":
-      actorPlayer.reach = true;
+    case "riichi_accepted":
+      actorPlayer.riichi = true;
       break;
     case "chi":
     case "pon":
@@ -287,7 +287,7 @@ loadAction = function(action) {
   }
 };
 
-deleteTehai = function(player, pai) {
+deleteTehai = function (player, pai) {
   var idx;
   player.tehais = player.tehais.concat([]);
   idx = player.tehais.lastIndexOf(pai);
@@ -300,10 +300,10 @@ deleteTehai = function(player, pai) {
   return player.tehais[idx] = null;
 };
 
-ripai = function(player) {
+ripai = function (player) {
   var pai;
   if (player.tehais) {
-    player.tehais = (function() {
+    player.tehais = (function () {
       var _i, _len, _ref, _results;
       _ref = player.tehais;
       _results = [];
@@ -319,7 +319,7 @@ ripai = function(player) {
   }
 };
 
-dumpBoard = function(board) {
+dumpBoard = function (board) {
   var consumedStr, furo, hoStr, i, player, tehaisStr, _i, _j, _len, _ref, _results;
   _results = [];
   for (i = _i = 0; _i < 4; i = ++_i) {
@@ -344,7 +344,7 @@ dumpBoard = function(board) {
   return _results;
 };
 
-renderPai = function(pai, view, pose) {
+renderPai = function (pai, view, pose) {
   if (pose === void 0) {
     pose = 1;
   }
@@ -361,7 +361,7 @@ renderPai = function(pai, view, pose) {
   }
 };
 
-renderPais = function(pais, view, poses) {
+renderPais = function (pais, view, poses) {
   var i, _i, _ref, _results;
   pais || (pais = []);
   poses || (poses = []);
@@ -373,22 +373,22 @@ renderPais = function(pais, view, poses) {
   return _results;
 };
 
-renderHo = function(player, offset, pais, view) {
-  var i, reachIndex, _i, _ref, _results;
-  if (player.reachHoIndex === null) {
-    reachIndex = null;
+renderHo = function (player, offset, pais, view) {
+  var i, riichiIndex, _i, _ref, _results;
+  if (player.riichiHoIndex === null) {
+    riichiIndex = null;
   } else {
-    reachIndex = player.reachHoIndex - offset;
+    riichiIndex = player.riichiHoIndex - offset;
   }
   view.resize(pais.length);
   _results = [];
   for (i = _i = 0, _ref = pais.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-    _results.push(renderPai(pais[i], view.at(i), i === reachIndex ? 3 : 1));
+    _results.push(renderPai(pais[i], view.at(i), i === riichiIndex ? 3 : 1));
   }
   return _results;
 };
 
-renderAction = function(action) {
+renderAction = function (action) {
   var dir, displayAction, furo, furoView, ho, i, infoView, j, k, kyoku, laidPos, pais, player, poses, v, view, wanpais, _i, _j, _ref, _ref1, _ref2, _ref3;
   displayAction = {};
   for (k in action) {
@@ -454,15 +454,15 @@ renderAction = function(action) {
   return renderPais(wanpais, Dytem.wanpais);
 };
 
-getCurrentKyoku = function() {
+getCurrentKyoku = function () {
   return kyokus[currentKyokuId];
 };
 
-renderCurrentAction = function() {
+renderCurrentAction = function () {
   return renderAction(getCurrentKyoku().actions[currentActionId]);
 };
 
-goNext = function() {
+goNext = function () {
   if (currentActionId === getCurrentKyoku().actions.length - 1) {
     return;
   }
@@ -471,7 +471,7 @@ goNext = function() {
   return renderCurrentAction();
 };
 
-goBack = function() {
+goBack = function () {
   if (currentActionId === 0) {
     return;
   }
@@ -480,9 +480,9 @@ goBack = function() {
   return renderCurrentAction();
 };
 
-loadMjson = function() {
+loadMjson = function () {
   var action, bakazeStr, honba, i, j, kyokuNum, label, playerInfoView, playerView, _i, _j, _k, _l, _len, _ref;
-  $(window).bind("mousewheel", function(e) {
+  $(window).bind("mousewheel", function (e) {
     e.preventDefault();
     if (e.originalEvent.wheelDelta < 0) {
       return goNext();
@@ -492,16 +492,16 @@ loadMjson = function() {
   });
   $("#prev-button").click(goBack);
   $("#next-button").click(goNext);
-  $("#go-button").click(function() {
+  $("#go-button").click(function () {
     currentActionId = parseInt($("#action-id-label").val());
     return renderCurrentAction();
   });
-  $("#kyokuSelector").change(function() {
+  $("#kyokuSelector").change(function () {
     currentKyokuId = parseInt($("#kyokuSelector").val());
     currentActionId = 0;
     return renderCurrentAction();
   });
-  $("#viewpoint-button").click(function() {
+  $("#viewpoint-button").click(function () {
     currentViewpoint = (currentViewpoint + 1) % 4;
     return renderCurrentAction();
   });
