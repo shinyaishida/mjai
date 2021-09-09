@@ -1,6 +1,5 @@
 /* eslint func-names: ["error", "as-needed"] */
 
-// const IMAGE_PATH = 'http://gimite.net/mjai/images';
 const IMAGE_PATH = './images';
 
 const TSUPAIS = [null, 'E', 'S', 'W', 'N', 'P', 'F', 'C'];
@@ -33,8 +32,9 @@ const PlayersInfo = [{}, {}, {}, {}];
 let PlayerName = 'kkri-client';
 let MyPlayerId;
 let GameRoom = 'default';
-let TileIndex;
-let WaitingDiscard = false;
+let TileIndex = -1;
+let DrawnTileIndex = -1;
+let WaitingTileDiscarded = false;
 let AutoPlay = false;
 
 const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
@@ -160,9 +160,9 @@ const renderPai = function (pai, view, index, pose = undefined, mypai = false) {
     view.addClass('mypai');
     view.on('click', function dahai() {
       console.log('clicked!', $(this));
-      if (WaitingDiscard) {
+      if (WaitingTileDiscarded) {
         TileIndex = parseInt($(this).attr('index'), 10);
-        WaitingDiscard = false;
+        WaitingTileDiscarded = false;
       }
     });
   }
@@ -259,7 +259,7 @@ function getClickedTile() {
 }
 
 function discardedDrawnTile() {
-  return TileIndex === (getCurrentTehais().length - 1);
+  return TileIndex === DrawnTileIndex;
 }
 
 function renderActionLog(action) {
@@ -290,6 +290,26 @@ function renderActionLog(action) {
 
 function renderPlayerStatus(view, player, playerId) {
   view.status.text(`${BAKAZE[playerId]}  ${PlayersInfo[playerId].name}  ${player.score}`);
+}
+
+function renderPlayerPossibleActions(view, socket, possible_actions) {
+  view.calls.html('');
+  possible_actions.forEach((pa) => {
+    view.calls.append(
+      $(document.createElement('input')).prop({
+        type: 'button',
+        id: pa.type,
+        value: pa.type,
+        className: 'possible-action'
+      }).on('click', () => {
+        if (WaitingTileDiscarded) {
+          WaitingTileDiscarded = false;
+          socket.send(JSON.stringify(pa));
+        }
+      })
+    );
+    WaitingTileDiscarded = true;
+  });
 }
 
 function renderPlayerTehais(view, player, playerId) {
@@ -342,9 +362,13 @@ function renderPlayerFuro(view, player, playerId) {
   }
 }
 
-function renderPlayerBoard(player, playerId) {
+function renderPlayerBoard(player, playerId, action, socket) {
   const view = window.Dytem.players.at((playerId - CurrentViewpoint + 4) % 4);
   renderPlayerStatus(view, player, playerId);
+  if (playerId === MyPlayerId) {
+    renderPlayerPossibleActions(view, socket,
+      (action.possible_actions) ? action.possible_actions : []);
+  }
   renderPlayerTehais(view, player, playerId);
   renderPlayerHo(view, player);
   renderPlayerFuro(view, player, playerId);
@@ -369,12 +393,12 @@ function renderGameState(action) {
   }
 }
 
-const renderAction = function (action) {
+const renderAction = function (action, socket) {
   console.log(action);
   renderActionLog(action);
   for (let i = 0; i < 4; i += 1) {
     const player = action.board.players[i];
-    renderPlayerBoard(player, i);
+    renderPlayerBoard(player, i, action, socket);
   }
   renderWanpais(action);
   renderGameState(action);
@@ -401,6 +425,7 @@ function roundStarted(action) {
 
 function tileDrawn(action) {
   actorPlayer = action.board.players[action.actor];
+  DrawnTileIndex = actorPlayer.tehais.length;
   actorPlayer.tehais.push(action.pai);
 }
 
@@ -424,15 +449,16 @@ function openMeldingCalled(action) {
   actorPlayer = action.board.players[action.actor];
   targetPlayer = action.board.players[action.target];
   targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
-  action.consumed.forEach((tile) => {
-    deleteTehai(actorPlayer, tile);
-  });
+  action.consumed.forEach((tile) => { deleteTehai(actorPlayer, tile); });
   actorPlayer.furos.push({
     type: action.type,
     taken: action.pai,
     consumed: action.consumed,
     target: action.target,
   });
+  if (myAction(action)) {
+    WaitingTileDiscarded = true;
+  }
 }
 
 function ankanCalled(action) {
@@ -470,6 +496,8 @@ function doraAdded(action) {
 
 function applyRoundAction(action) {
   action.board = cloneCurrentBoard();
+  TileIndex = -1;
+  DrawnTileIndex = -1;
   switch (action.type) {
     case 'tsumo':
       tileDrawn(action);
@@ -534,7 +562,7 @@ function sortTiles(action) {
   }
 }
 
-const loadAction = function (action) {
+const loadAction = function (action, socket) {
   console.log(action);
   applyAction(action);
   const kyoku = getCurrentKyoku();
@@ -542,7 +570,7 @@ const loadAction = function (action) {
     updateScores(action);
     sortTiles(action);
     kyoku.actions.push(action);
-    renderAction(action);
+    renderAction(action, socket);
   }
 };
 
@@ -599,13 +627,13 @@ function discardTileAutomatically(action, socket) {
 }
 
 async function waitTileClicked() {
-  WaitingDiscard = true;
+  WaitingTileDiscarded = true;
   TileIndex = -1;
   while (TileIndex < 0) {
     // eslint-disable-next-line no-await-in-loop
     await sleep(200);
   }
-  WaitingDiscard = false;
+  WaitingTileDiscarded = false;
 }
 
 function discardClickedTile(socket) {
@@ -660,15 +688,22 @@ function takeActionOnTileDrawn(action, socket) {
   }
 }
 
+async function waitClicked() {
+  while (WaitingTileDiscarded) {
+    // eslint-disable-next-line no-await-in-loop
+    await sleep(200);
+  }
+  WaitingTileDiscarded = false;
+}
+
 function takePossibleActionToDiscardedTile(action, socket) {
-  let called = false;
-  action.possible_actions.forEach((pa) => {
-    if (!called && pa.type === 'hora') {
-      called = true;
-      socket.send(JSON.stringify(pa));
-    }
-  });
-  if (!called) {
+  if (action.possible_actions && action.possible_actions.length > 0) {
+    waitClicked().then(() => {
+      if (TileIndex >= 0) {
+        replyNone(socket);
+      }
+    });
+  } else {
     replyNone(socket);
   }
 }
@@ -683,23 +718,23 @@ function takeActionOnTileDiscarded(action, socket) {
 
 async function waitDiscardableTileClicked(action) {
   TileIndex = -1;
-  WaitingDiscard = true;
+  WaitingTileDiscarded = true;
   while (TileIndex < 0) {
     // eslint-disable-next-line no-await-in-loop
     await sleep(200);
     if (TileIndex >= 0) {
       const clickedTile = getCurrentTehais()[TileIndex];
-      if (action.cannot_dahai.includes(clickedTile)) {
+      if (action.cannot_dahai && action.cannot_dahai.includes(clickedTile)) {
         console.log(`cannot discard ${clickedTile} to keep tenpai`);
         TileIndex = -1;
-        WaitingDiscard = true;
+        WaitingTileDiscarded = true;
       }
     }
   }
-  WaitingDiscard = false;
+  WaitingTileDiscarded = false;
 }
 
-function takeActionOnRiichiCalled(action, socket) {
+function takeActionOnCall(action, socket) {
   if (myAction(action)) {
     waitDiscardableTileClicked(action).then(() => { discardClickedTile(socket); });
   } else {
@@ -719,8 +754,11 @@ function takeAction(action, socket) {
     case 'dahai':
       takeActionOnTileDiscarded(action, socket);
       break;
+    case 'chi':
+    case 'pon':
+    case 'daiminkan':
     case 'riichi':
-      takeActionOnRiichiCalled(action, socket);
+      takeActionOnCall(action, socket);
       break;
     case 'hora':
     case 'ryukyoku':
@@ -754,7 +792,7 @@ function messageReceived(event, socket) {
       handleError(action, socket);
       break;
     default:
-      loadAction(action);
+      loadAction(action, socket);
       takeAction(action, socket);
   }
 }
