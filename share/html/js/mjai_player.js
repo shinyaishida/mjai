@@ -189,9 +189,9 @@ const renderPais = function (pais, view, poses, mypai = false) {
 };
 
 const renderHo = function (player, offset, pais, view) {
-  const riichiIndex = (player.riichiHoIndex === null)
-    ? null
-    : player.riichiHoIndex - offset;
+  const riichiIndex = (player.riichiHoIndex === null) ?
+    null :
+    player.riichiHoIndex - offset;
   view.resize(pais.length);
   const ref = pais.length;
   for (let i = 0; ref >= 0 ? i < ref : i > ref; i += ref >= 0 ? 1 : -1) {
@@ -205,13 +205,15 @@ const getCurrentKyoku = function () {
 
 function getCurrentBoard() {
   const kyoku = getCurrentKyoku();
-  return (kyoku && kyoku.actions.length > 0)
-    ? kyoku.actions[kyoku.actions.length - 1].board
-    : null;
+  return (kyoku && kyoku.actions.length > 0) ?
+    kyoku.actions[kyoku.actions.length - 1].board :
+    null;
 }
 
 function getCurrentPlayer() {
-  const { actions } = getCurrentKyoku();
+  const {
+    actions
+  } = getCurrentKyoku();
   return actions[actions.length - 1].board.players[MyPlayerId];
 }
 
@@ -316,7 +318,7 @@ function renderPlayerTehais(view, player, playerId) {
   if (!player.tehais) {
     renderPais([], view.tehais);
     view.tsumoPai.hide();
-  } else if (player.tehais.length % 3 === 2) {
+  } else if (player.tehais.filter(val => val).length % 3 === 2) {
     const myHais = playerId === MyPlayerId;
     const maxTehaiId = player.tehais.length - 1;
     renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
@@ -349,8 +351,7 @@ function renderPlayerFuro(view, player, playerId) {
         poses = [1, 1, 1, 1];
       } else {
         const dir = (4 + furo.target - playerId) % 4;
-        const laidPos = (furo.type === 'daiminkan' || furo.type === 'kakan')
-          ? [null, 3, 1, 0][dir] : [null, 2, 1, 0][dir];
+        const laidPos = (furo.type === 'daiminkan' || furo.type === 'kakan') ? [null, 3, 1, 0][dir] : [null, 2, 1, 0][dir];
         pais = furo.consumed.concat([]);
         poses = [1, 1, 1];
         [].splice.apply(pais, [laidPos, laidPos - laidPos].concat([furo.taken]));
@@ -449,7 +450,9 @@ function openMeldingCalled(action) {
   actorPlayer = action.board.players[action.actor];
   targetPlayer = action.board.players[action.target];
   targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
-  action.consumed.forEach((tile) => { deleteTehai(actorPlayer, tile); });
+  action.consumed.forEach((tile) => {
+    deleteTehai(actorPlayer, tile);
+  });
   actorPlayer.furos.push({
     type: action.type,
     taken: action.pai,
@@ -476,7 +479,9 @@ function kakanCalled(action) {
   actorPlayer = action.board.players[action.actor];
   deleteTehai(actorPlayer, action.pai);
   actorPlayer.furos = actorPlayer.furos.concat([]);
-  const { furos } = actorPlayer;
+  const {
+    furos
+  } = actorPlayer;
   const ref2 = furos.length;
   for (let i = 0; ref2 >= 0 ? i < ref2 : i > ref2; i += ref2 >= 0 ? 1 : -1) {
     if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
@@ -597,7 +602,9 @@ function joinGame(socket, playerName, gameRoom) {
 }
 
 function replyNone(socket) {
-  socket.send(JSON.stringify({ type: 'none' }));
+  socket.send(JSON.stringify({
+    type: 'none'
+  }));
 }
 
 function initGame(action, socket) {
@@ -672,7 +679,9 @@ function takePossibleActionToDrawnTile(action, socket) {
     });
   }
   if (!done) {
-    waitTileClicked().then(() => { discardClickedTile(socket); });
+    waitTileClicked().then(() => {
+      discardClickedTile(socket);
+    });
   }
 }
 
@@ -736,14 +745,18 @@ async function waitDiscardableTileClicked(action) {
 
 function takeActionOnCall(action, socket) {
   if (myAction(action)) {
-    waitDiscardableTileClicked(action).then(() => { discardClickedTile(socket); });
+    waitDiscardableTileClicked(action).then(() => {
+      discardClickedTile(socket);
+    });
   } else {
     replyNone(socket);
   }
 }
 
 function acknowledgeResult(socket) {
-  waitTileClicked().then(() => { replyNone(socket); });
+  waitTileClicked().then(() => {
+    replyNone(socket);
+  });
 }
 
 function takeAction(action, socket) {
@@ -756,7 +769,6 @@ function takeAction(action, socket) {
       break;
     case 'chi':
     case 'pon':
-    case 'daiminkan':
     case 'riichi':
       takeActionOnCall(action, socket);
       break;
