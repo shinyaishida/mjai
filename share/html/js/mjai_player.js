@@ -86,9 +86,7 @@ const cloneBoard = function (board) {
       newBoard[bk] = [];
       bv.forEach((player) => {
         const newPlayer = {};
-        Object.keys(player).forEach((pk) => {
-          newPlayer[pk] = player[pk];
-        });
+        Object.keys(player).forEach((pk) => newPlayer[pk] = player[pk]);
         newBoard[bk].push(newPlayer);
       });
     } else {
@@ -96,16 +94,6 @@ const cloneBoard = function (board) {
     }
   });
   return newBoard;
-};
-
-const removeRed = function (pai) {
-  if (!pai) {
-    return null;
-  }
-  if (pai.match(/^(.+)r$/)) {
-    return RegExp.$1;
-  }
-  return pai;
 };
 
 const deleteTehai = function (player, pai) {
@@ -135,18 +123,19 @@ const comparePais = function (lhs, rhs) {
   return 0;
 };
 
+function removeNullTiles(tehais) {
+  const results = [];
+  tehais.forEach((pai) => {
+    if (pai) {
+      results.push(pai);
+    }
+  });
+  return results;
+}
+
 const ripai = function (player) {
   if (!player.tehais) return;
-
-  player.tehais = (function removeNullTiles() {
-    const results = [];
-    player.tehais.forEach((pai) => {
-      if (pai) {
-        results.push(pai);
-      }
-    });
-    return results;
-  }());
+  player.tehais = removeNullTiles(player.tehais);
   player.tehais.sort(comparePais);
 };
 
@@ -452,9 +441,7 @@ function openMeldingCalled(action) {
   actorPlayer = action.board.players[action.actor];
   targetPlayer = action.board.players[action.target];
   targetPlayer.ho = targetPlayer.ho.slice(0, targetPlayer.ho.length - 1);
-  action.consumed.forEach((tile) => {
-    deleteTehai(actorPlayer, tile);
-  });
+  action.consumed.forEach((tile) => deleteTehai(actorPlayer, tile));
   actorPlayer.furos.push({
     type: action.type,
     taken: action.pai,
@@ -468,25 +455,35 @@ function openMeldingCalled(action) {
 
 function ankanCalled(action) {
   actorPlayer = action.board.players[action.actor];
-  action.consumed.forEach((tile) => {
-    deleteTehai(actorPlayer, tile);
-  });
+  action.consumed.forEach((tile) => deleteTehai(actorPlayer, tile));
   actorPlayer.furos.push({
     type: action.type,
     consumed: action.consumed,
   });
 }
 
+const removeRed = function (pai) {
+  if (!pai) {
+    return null;
+  }
+  if (pai.match(/^(.+)r$/)) {
+    return RegExp.$1;
+  }
+  return pai;
+};
+
+function same(tileA, tileB) {
+  return removeRed(tileA) === removeRed(tileB);
+}
+
 function kakanCalled(action) {
   actorPlayer = action.board.players[action.actor];
   deleteTehai(actorPlayer, action.pai);
   actorPlayer.furos = actorPlayer.furos.concat([]);
-  const {
-    furos
-  } = actorPlayer;
+  const { furos } = actorPlayer;
   const ref2 = furos.length;
   for (let i = 0; ref2 >= 0 ? i < ref2 : i > ref2; i += ref2 >= 0 ? 1 : -1) {
-    if (furos[i].type === 'pon' && removeRed(furos[i].taken) === removeRed(action.pai)) {
+    if (furos[i].type === 'pon' && same(furos[i].taken, action.pai)) {
       furos[i] = {
         type: 'kakan',
         taken: action.pai,
@@ -604,9 +601,7 @@ function joinGame(socket, playerName, gameRoom) {
 }
 
 function replyNone(socket) {
-  socket.send(JSON.stringify({
-    type: 'none'
-  }));
+  socket.send(JSON.stringify({ type: 'none' }));
 }
 
 function initGame(action, socket) {
@@ -681,9 +676,7 @@ function takePossibleActionToDrawnTile(action, socket) {
     });
   }
   if (!done) {
-    waitTileClicked().then(() => {
-      discardClickedTile(socket);
-    });
+    waitTileClicked().then(() => discardClickedTile(socket));
   }
 }
 
@@ -747,18 +740,14 @@ async function waitDiscardableTileClicked(action) {
 
 function takeActionOnCall(action, socket) {
   if (myAction(action)) {
-    waitDiscardableTileClicked(action).then(() => {
-      discardClickedTile(socket);
-    });
+    waitDiscardableTileClicked(action).then(() => discardClickedTile(socket));
   } else {
     replyNone(socket);
   }
 }
 
 function acknowledgeResult(socket) {
-  waitTileClicked().then(() => {
-    replyNone(socket);
-  });
+  waitTileClicked().then(() => replyNone(socket));
 }
 
 function takeAction(action, socket) {
