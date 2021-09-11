@@ -8,26 +8,29 @@
     tile_height % 20 = 0
 
   Board layout
-    l  =  board_width  =  board_height  =  24 * tile_width
+    l  =  board_width  =  board_height  =  28 * tile_width
     a  =  13 * tile_width
     b  =  (l - a) / 2
-    c  =  5 * tile_height
+    c  =  6 * tile_height
     d  =  l - 2 * c  =  3 * tile_height + 2 * p
-    p  =  2/11 * tile_width
+    p  =  4/11 * tile_width
+    e  =  (l - 5 * tile_width + tile_height) / 2
 
-  p  +              === padding
-  ^  |                [ space
-  d  |                [...wanpai
-  v  |                [ round info ]
-  p  +              === padding
-  ^  |                [...ho
-  |  |                [...ho                                 [..furo..]|
-  c  |                [...ho                                 [..furo..]|
-  |  |                [ player info ]                  tsumo [..furo..]|
-  v  |                [.............tehai.............] [.]  [..furo..]|
+  p  +               ============= padding =============
+  ^  |                        [    space   ]
+  d  |                        [...wanpai...]
+  v  |                        [ round info ]
+  p  +               ============= padding =============
+  ^  |                        [.....ho.....]
+  |  |                        [.....ho.....]
+  c  |                        [.....ho.....]
+  |  |                [ player info ]                  tsumo
+  |  |                [.............tehai.............] [.]            |
+  v  |                                                       [..furo..]|
      +---------------+---------------------------------+---------------+
       <----- b -----> <-------------- a --------------> <----- b ----->
       <------------------------------ l ------------------------------>
+      <---------- e --------->
 */
 .repeated {
   display: none;
@@ -48,29 +51,29 @@
   position: absolute;
   left: 0px;
   top: 0px;
-  width: 810px;
-  height: 810px;
+  width: 930px;
+  height: 930px;
 }
 
 .player {
   /* border: 1px black solid; */
-  width: 810px;
+  width: 930px;
   position: absolute;
 }
 
 .player-0 {
   left: 0px;
-  top: 510px;
+  top: 570px;
   -webkit-transform: rotate(0deg);
   transform: rotate(0deg);
   z-index: 999;
 }
 
 .player-1 {
-  left: 255px;
-  top: 255px;
-  -webkit-transform: rotate(270deg);
-  transform: rotate(270deg);
+  /* left: 315px;
+  top: 300px; */
+  -webkit-transform: rotate(270deg) translate(-286px, 286px);
+  transform: rotate(270deg) translate(-286px, 286px);
 }
 
 .player-2 {
@@ -81,25 +84,23 @@
 }
 
 .player-3 {
-  left: -255px;
-  top: 255px;
-  -webkit-transform: rotate(90deg);
-  transform: rotate(90deg);
+  -webkit-transform: rotate(90deg) translate(286px, 286px);
+  transform: rotate(90deg) translate(286px, 286px);
 }
 
 .wanpais-container {
   position: absolute;
-  left: 306px;
-  top: 375px;
+  left: 360px;
+  top: 435px;
 }
 
 .ho {
-  margin-left: 306px;
+  margin-left: 360px;
   /* margin-bottom: 60px; */
 }
 
 .status {
-  margin-left: 190px;
+  margin-left: 250px;
   float: left;
 }
 
@@ -109,17 +110,19 @@
   color: aliceblue;
 }
 
-.furo-container {
-  float: right;
-}
-
 .tehai-container {
-  margin-left: 190px;
+  margin-left: 250px;
+  width: 680px;
   float: left;
 }
 
 .tsumo-pai {
   margin-left: 8px;
+}
+
+.furo-container {
+  margin-left: 250px;
+  float: right;
 }
 
 .player-footer {
@@ -133,13 +136,13 @@
 .controller-container {
   position: absolute;
   left: 0px;
-  top: 810px;
+  top: 930px;
   padding: 6px;
 }
 
 .action-dump {
   position: absolute;
-  left: 830px;
+  left: 950px;
   top: 0px;
 }
 
