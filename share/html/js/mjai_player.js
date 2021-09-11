@@ -318,15 +318,17 @@ function renderPlayerTehais(view, player, playerId) {
   if (!player.tehais) {
     renderPais([], view.tehais);
     view.tsumoPai.hide();
-  } else if (player.tehais.filter(val => val).length % 3 === 2) {
-    const myHais = playerId === MyPlayerId;
-    const maxTehaiId = player.tehais.length - 1;
-    renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
-    view.tsumoPai.show();
-    renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
   } else {
-    renderPais(player.tehais, view.tehais);
-    view.tsumoPai.hide();
+    const myHais = playerId === MyPlayerId;
+    if (player.tehais.filter(val => val).length % 3 === 2) {
+      const maxTehaiId = player.tehais.length - 1;
+      renderPais(player.tehais.slice(0, maxTehaiId), view.tehais, [], myHais);
+      view.tsumoPai.show();
+      renderPai(player.tehais[maxTehaiId], view.tsumoPai, maxTehaiId, 1, myHais);
+    } else {
+      renderPais(player.tehais, view.tehais, [], myHais);
+      view.tsumoPai.hide();
+    }
   }
 }
 
