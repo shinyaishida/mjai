@@ -3,6 +3,7 @@
 require 'json'
 require 'faye/websocket'
 require './lib/mjai/active_game'
+require './lib/mjai/active_test_game'
 require './lib/mjai/ws_player'
 
 # TCPGameServer#initialize()
@@ -101,9 +102,11 @@ App = lambda do |env|
 end
 
 def start_game(players)
-  game = Mjai::ActiveGame.new(players)
-  #  game.game_type = params[:game_type]
-  game.game_type = :tonnan
+  # game = Mjai::ActiveGame.new(players)
+  # game.game_type = params[:game_type]
+  # game.game_type = :tonnan
+  game = Mjai::ActiveTestGame.new(players, './scenarios/all_1m.scenario')
+  game.game_type = :one_kyoku
   game.on_action do |action|
     game.dump_action(action)
   end
