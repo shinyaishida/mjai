@@ -52,7 +52,7 @@ module Mjai
 
     def play_kyoku
       catch(:end_kyoku) do
-        @pipais = load_scenario
+        @pipais = load_scenario.reverse
         @wanpais = @pipais.pop(14)
         dora_marker = @wanpais.pop
         tehais = Array.new(4) { @pipais.pop(13).sort }

@@ -74,7 +74,6 @@ module Mjai
           end
           action = Action.from_json(action_json, self)
           responses = do_action(action)
-          break if action.type == :end_game
 
           response = responses && responses[@my_id]
           response_json = response ? response.to_json : JSON.dump({ 'type' => 'none' })
