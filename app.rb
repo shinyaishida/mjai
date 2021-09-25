@@ -73,8 +73,8 @@ App = lambda do |env|
             if delta.zero?
               Thread.new do
                 # TCPActiveGameServer#play_game()
-                success = start_game(players)
-                Mjai::LOGGER.debug(success)
+                start_game(players)
+                Mjai::LOGGER.debug('game ended')
               end
             end
           end
@@ -102,13 +102,17 @@ App = lambda do |env|
 end
 
 def start_game(players)
-  # game = Mjai::ActiveGame.new(players)
+  # game = Mjai::ActiveTestGame.new(players, './scenarios/doubleriichi.scenario')
+  game = Mjai::ActiveGame.new(players)
   # game.game_type = params[:game_type]
-  # game.game_type = :tonnan
-  game = Mjai::ActiveTestGame.new(players, './scenarios/all_1m.scenario')
   game.game_type = :one_kyoku
+  # game.game_type = :tonnan
+
   game.on_action do |action|
     game.dump_action(action)
   end
   game.play
+  players.each(&:close)
+  players.clear
+  Mjai::LOGGER.debug('closed sockets')
 end
