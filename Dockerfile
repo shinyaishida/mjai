@@ -1,4 +1,4 @@
-FROM ruby:2.7.3
+FROM ruby:2.7-slim
 RUN apt-get update
 RUN apt-get install -y  libxslt-dev libxml2-dev 
 RUN apt-get install -y build-essential
