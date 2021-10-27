@@ -1,2 +1,9 @@
 <h1>StaticPages#room</h1>
-<p>Find me in app/views/static_pages/room.html.erb</p>
+<% provide(:title, 'Room') %>
+<h1>Room</h1>
+<% if joined? %>
+<p>Hi, <%= current_user.name %>!</p>
+<%= link_to 'Leave', leave_path, method: :delete %>
+<% else %>
+<p>Left</p>
+<% end %>
