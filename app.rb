@@ -105,8 +105,8 @@ def start_game(players)
   # game = Mjai::ActiveTestGame.new(players, './scenarios/doubleriichi.scenario')
   game = Mjai::ActiveGame.new(players)
   # game.game_type = params[:game_type]
-  game.game_type = :one_kyoku
-  # game.game_type = :tonnan
+  # game.game_type = :one_kyoku
+  game.game_type = :tonnan
 
   game.on_action do |action|
     game.dump_action(action)
