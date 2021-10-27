@@ -1,0 +1,7 @@
+<% provide(:title, 'Join') %>
+<h1>Join</h1>
+<%= form_with url: join_path, model: @user do |form| %>
+<%= form.label :name %>
+<%= form.text_field :name %>
+<%= form.submit 'Join' %>
+<% end %>
