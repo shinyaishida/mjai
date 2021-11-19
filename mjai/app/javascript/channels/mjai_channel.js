@@ -1,24 +1,20 @@
-import consumer from "./consumer"
+import consumer from './consumer'
+import Mjai from './mjai'
 
-const channel = consumer.subscriptions.create("MjaiChannel", {
+const mjai = new Mjai(consumer.subscriptions.create('MjaiChannel', {
   connected() {
     // Called when the subscription is ready for use on the server
-    console.log('connected');
-    channel.send({
-      message: 'Hi'
-    });
+    console.log('Connected to server');
   },
 
   disconnected() {
     // Called when the subscription has been terminated by the server
-    console.log('disconnected');
+    console.log('Disconnected from server');
   },
 
   received(data) {
     // Called when there's incoming data on the websocket for this channel
     console.log(data['message']);
-    channel.perform('test', {
-      message: 'test message'
-    });
+    mjai.received(JSON.parse(data['message']))
   }
-});
+}));

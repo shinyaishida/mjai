@@ -3,6 +3,7 @@
 <h1>Room</h1>
 <% if joined? %>
 <p>Hi, <%= current_user.name %>!</p>
+<p class='player-list'></p>
 <%= link_to 'Leave', leave_path, method: :delete %>
 <% else %>
 <p>Left</p>
