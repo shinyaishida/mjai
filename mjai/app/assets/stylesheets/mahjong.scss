@@ -1,0 +1,182 @@
+// Place all the styles related to the Mahjong controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: https://sass-lang.com/
+
+/*
+  Tile size
+    tile_width : tile_height = 11 : 20
+    tile_width % 11 = 0
+    tile_height % 20 = 0
+
+  Board layout
+    l  =  board_width  =  board_height  =  28 * tile_width
+    a  =  13 * tile_width
+    b  =  (l - a) / 2
+    c  =  6 * tile_height
+    d  =  l - 2 * c  =  3 * tile_height + 2 * p
+    p  =  4/11 * tile_width
+    e  =  (l - 5 * tile_width + tile_height) / 2
+
+  p  +               ============= padding =============
+  ^  |                          [..uradra..]
+  d  |                        [...wanpai...]
+  v  |                        [ round info ]
+  p  +               ============= padding =============
+  ^  |                        [.....ho.....]
+  |  |                        [.....ho.....]
+  c  |                        [.....ho.....]
+  |  |                [ player info ]                  tsumo
+  |  |                [.............tehai.............] [.]            |
+  v  |                                                       [..furo..]|
+     +---------------+---------------------------------+---------------+
+      <----- b -----> <-------------- a --------------> <----- b ----->
+      <------------------------------ l ------------------------------>
+      <---------- e --------->
+*/
+
+$board_size: 930px;
+$tile_width: 33px;
+$tile_height: 60px;
+$laid_tile_width: 45px;
+$laid_tile_height: 48px;
+$padding: 15px;
+$tile_margin: 6px;
+$offset: $tile_height * 9+$padding * 2;
+$tehai_margin: ($board_size - $tile_width * 13) / 2;
+$ho_margin: ($board_size - $tile_width * 6) / 2;
+
+div {
+  &.repeated {
+    display: none;
+  }
+
+  &.pai {
+    width: $tile_width;
+    height: $tile_height;
+  }
+
+  &.laid-pai {
+    width: $laid_tile_width;
+    height: $laid_tile_height;
+  }
+
+  &.board {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: $board_size;
+    height: $board_size;
+    background-color: green;
+  }
+
+  &.player {
+    position: absolute;
+    width: $board_size;
+  }
+
+  &.player-0 {
+    left: 0px;
+    top: $offset;
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0px);
+    z-index: 999;
+  }
+
+  &.player-1 {
+    -webkit-transform: rotate(270deg) translate(-$offset / 2, $offset / 2);
+    transform: rotate(270deg) translate(-$offset / 2, $offset / 2);
+  }
+
+  &.player-2 {
+    left: 0px;
+    top: 0px;
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+  }
+
+  &.player-3 {
+    -webkit-transform: rotate(90deg) translate($offset / 2, $offset / 2);
+    transform: rotate(90deg) translate($offset / 2, $offset / 2);
+  }
+
+  &.wanpais-container {
+    position: absolute;
+    left: $ho_margin;
+    top: $tile_height * 6 + $padding;
+  }
+
+  &.uradora-row {
+    margin-left: $tile_width * 2;
+  }
+
+  &.ho {
+    margin-left: $ho_margin;
+  }
+
+  &.status {
+    margin-left: $tehai_margin;
+    width: $tile_width * 13;
+    float: left;
+  }
+
+  &.notification {
+    margin-left: $tehai_margin;
+    width: $tile_width * 13;
+    float: left;
+  }
+
+  &.board-character {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: medium;
+    font-weight: bold;
+    color: aliceblue;
+  }
+
+  &.tehai-container {
+    margin-left: $tehai_margin;
+    width: $board_size - $tehai_margin;
+    float: left;
+  }
+
+  &.tsumo-hai {
+    margin-left: $tile_margin;
+  }
+
+  &.furo-container {
+    margin-left: $tehai_margin;
+    float: right;
+  }
+
+  &.player-footer {
+    clear: both;
+  }
+
+  &.pai-row {
+    height: $tile_height;
+  }
+
+  &.round-end {
+    text-align: center;
+  }
+
+  &.controller-container {
+    position: absolute;
+    left: 0px;
+    top: $board_size;
+    padding: 15px;
+  }
+
+  &.console {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: medium;
+    font-weight: bold;
+    color: black;
+  }
+}
+
+input {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: medium;
+  font-weight: bold;
+  color: black;
+}

@@ -29,7 +29,13 @@ class Mjai {
   }
 
   __playerJoined(mjaiMessage) {
-    document.querySelector(".player-list").innerText = mjaiMessage.players
+    // document.querySelector(".player-list").innerText = mjaiMessage.players
+    const players = mjaiMessage.players
+    const myIndex = players.findIndex((n) => n === this._playerName);
+    for (let i = 0; i < 4; ++i) {
+      const playerName = players[(myIndex + i) % 4];
+      document.querySelector(`.player-${i}-status`).innerText = playerName ? playerName : '(waiting player...)';
+    }
   }
 
   __defaultAction(mjaiMessage) {

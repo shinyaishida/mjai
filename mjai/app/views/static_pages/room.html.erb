@@ -1,4 +1,91 @@
-<h1>StaticPages#room</h1>
+<%= javascript_pack_tag 'mjai-player' %>
+<div id="board" class="board">
+  <div id="players">
+    <div id="player-0" class="player player-0">
+      <div class="ho">
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+      </div>
+      <div class="board-character pai-row">
+        <div class="status player-0-status"></div>
+        <div class="notification"></div>
+      </div>
+      <div class="tehai-container pai-row">
+        <div class="tehais"></div>
+      </div>
+      <div class="furo-container pai-row">
+        <span class="furos"></span>
+      </div>
+    </div>
+    <div id="player-1" class="player player-1">
+      <div class="ho">
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+      </div>
+      <div class="board-character pai-row">
+        <div class="status player-1-status"></div>
+        <div class="notification"></div>
+      </div>
+      <div class="tehai-container pai-row">
+        <div class="tehais"></div>
+      </div>
+      <div class="furo-container pai-row">
+        <span class="furos"></span>
+      </div>
+    </div>
+    <div id="player-2" class="player player-2">
+      <div class="ho">
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+      </div>
+      <div class="board-character pai-row">
+        <div class="status player-2-status"></div>
+        <div class="notification"></div>
+      </div>
+      <div class="tehai-container pai-row">
+        <div class="tehais"></div>
+      </div>
+      <div class="furo-container pai-row">
+        <span class="furos"></span>
+      </div>
+    </div>
+    <div id="player-3" class="player player-3">
+      <div class="ho">
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+        <div class="ho-row pai-row"></div>
+      </div>
+      <div class="board-character pai-row">
+        <div class="status player-3-status"></div>
+        <div class="notification"></div>
+      </div>
+      <div class="tehai-container pai-row">
+        <div class="tehais"></div>
+      </div>
+      <div class="furo-container pai-row">
+        <span class="furos"></span>
+      </div>
+    </div>
+  </div>
+  <div class="wanpais-container">
+    <div class="uradora-row pai-row"></div>
+    <div class="wanpai-row pai-row"></div>
+    <div id="game-state" class="board-character pai-row">
+      <div id="round-state"></div>
+      <div id="riichi-deposit"></div>
+      <div id="round-end" class="round-end"></div>
+    </div>
+  </div>
+</div>
+<div class="controller-container console">
+  <div>
+    <input type="button" id="join-button" value="Join">
+    <label><input type="checkbox" id="autoplay">Autoplay</label>
+  </div>
+</div>
 <% provide(:title, 'Room') %>
 <h1>Room</h1>
 <% if joined? %>
