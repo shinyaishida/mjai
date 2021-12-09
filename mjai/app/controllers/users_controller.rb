@@ -7,7 +7,7 @@ class UsersController < ApplicationController
 
   def create
     if User.count >= 4
-      flash.now[:danger] = "Sorry, no vacancy"
+      flash.now[:danger] = 'Sorry, no vacancy'
       render 'new'
     else
       @user = User.new(user_params)

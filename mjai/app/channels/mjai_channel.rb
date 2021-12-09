@@ -24,17 +24,17 @@ class MjaiChannel < ApplicationCable::Channel
     mjai_msg = JSON.parse(data['message'])
     if mjai_msg['type'] == 'join'
       puts "#{mjai_msg['name']} joins room #{mjai_msg['room']}"
-      puts "#{User.all.collect(&:name)}"
+      puts User.all.collect(&:name).to_s
       players = User.all
       message = {
         type: 'join',
         players: players.collect(&:name)
       }
-      for player in players do
+      players.each do |player|
         MjaiChannel.broadcast_to player, message: message.to_json
       end
       delta = 4 - User.count
-      if delta > 0
+      if delta.positive?
         puts "Waiting for #{delta} more players..."
       else
         puts "start game among #{User.all.collect(&:name)}"
